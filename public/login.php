@@ -25,7 +25,7 @@ try {
 $user = $_POST['username'];
 $pw = $_POST['password'];
 
-$abfrage = "SELECT `id`, `password`, `email`, `username`, `admin` FROM `virtual_users` WHERE `email` = :username";
+$abfrage = "SELECT `id`, `password`, `email`, `username`, `admin` FROM `virtual_users` WHERE `email` = :username AND `active`='1'";
 $sth = $dbh->prepare($abfrage);
 $sth->execute(array(':username' => $user));
 $userdata = $sth->fetchAll();
