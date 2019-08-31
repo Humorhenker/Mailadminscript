@@ -15,6 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 session_start();
+$config = parse_ini_file('../private/config.ini');
 if (!isset($_SESSION['log']) OR $_SESSION['log'] != 1) {
     echo '<html>
     <head>
@@ -29,9 +30,12 @@ if (!isset($_SESSION['log']) OR $_SESSION['log'] != 1) {
     <label>Nutzername<input name="username" type="text"/></label>
     <label>Passwort<input name="password" type="password"/></label>
     <input name="Submit" type="submit" value="Einloggen"/>
-    </form>
-    <h3>Neues Konto erstellen:</h3>
-    <a href="bin/createmailpre.php"><button>Kontoerstellung</button></a>
+    </form>';
+    if ($config['allowregistration']) {
+        echo '<h3>Neues Konto erstellen:</h3>
+        <a href="bin/createmailpre.php"><button>Kontoerstellung</button></a>';
+    }
+    echo '
     </body>
     </html>
     ';

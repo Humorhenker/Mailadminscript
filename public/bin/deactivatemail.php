@@ -22,7 +22,7 @@ try {
     echo 'Connection failed';
 }
 session_start();
-if ($_SESSION['log'] == 1) {
+if ($_SESSION['log'] == 1 && $_SESSION['admin']) {
     $mailuserID = $_POST['mailuserID'];
     $eintrag = "UPDATE `mailserver`.`virtual_users` SET `active`='0' WHERE `id` LIKE :mailuserID";
     $sth = $dbh->prepare($eintrag);

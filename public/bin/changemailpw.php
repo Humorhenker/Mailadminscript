@@ -42,7 +42,6 @@ if ($_SESSION['log'] == 1) {
                 $eintrag = "UPDATE `virtual_users` SET `password` = :newmailpwhashed WHERE `email` LIKE :mailusername";
                 $sth = $dbh->prepare($eintrag);
                 $sth->execute(array('newmailpwhashed' => $newmailpwhashed, 'mailusername' => $mailusername));
-                $eintragen = mysqli_query($link, $eintrag);
                 if ($config['maildirencryption']) {
                     if ($_POST['forcekeyregen']) {
                         exec('sudo -u vmail /usr/bin/doveadm -o stats_writer_socket_path= -o plugin/mail_crypt_private_password=' . escapeshellarg($newmailpw) . ' mailbox cryptokey generate -U -f -u ' . escapeshellarg($mailusername));

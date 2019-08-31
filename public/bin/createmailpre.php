@@ -22,38 +22,43 @@ try {
     echo 'Connection failed';
 }
 session_start();
-if (!isset($_SESSION['log']) or $_SESSION['log'] != 1) {
-    echo' <h3>Emailadresse hinzufügen:</h3>
-    ';
-    if (isset($_GET['wrongcaptchacode']) AND $config['captcha']) {
-        echo '<h3>Captcha falsch</h3>';
+if ($config['allowregistration']) {
+    if (!isset($_SESSION['log']) or $_SESSION['log'] != 1) {
+        echo' <h3>Emailadresse hinzufügen:</h3>
+        ';
+        if (isset($_GET['wrongcaptchacode']) AND $config['captcha']) {
+            echo '<h3>Captcha falsch</h3>';
+        }
+        if (isset($_GET['pwtooshort'])) {
+            echo '<h3>Passwort zu kurz. Bitte mindestens 8 Zeichen</h3>';
+        }
+        if (isset($_GET['mailalreadytaken'])) {
+            echo '<h3>Diese Mailadresse besteht leider schon</h3>';
+        }
+        if (isset($_GET['pwnotequal'])) {
+            echo '<h3>Passwörter nicht gleich!</h3>';
+        }
+        if (isset($_GET['wrongsymbols'])) {
+            echo '<h3>Verbotene Symbole in Passwort oder Adresse enthalten!</h3>';
+        }
+        echo '<form name="createmailuser" method=POST action="createmailuser.php">
+        <label>Neue email<input type="text" name="newmailusername"/>@roteserver.de (benutze nicht ' .  "'" . ')</label>
+        <label>Neue Passwort<input type="password" name="newmailpw"/>(min. 8 Zeichen, benutze nicht ' .  "'" . ')</label>
+        <label>Neue Passwort wiederholen<input type="password" name="newmailpwrep"/></label>';
+        if ($config['captcha']) {
+        echo '<label><p>Captcha:</p><p>gebe hier bitte den Zahlencode aus dem Bild ein</p><img src="captcha.php"/>
+        <input type="text" name="captchacode"/></label>';
+        }
+        echo '<input type="submit" name="submit" value="Hinzufügen"/>
+        </form>
+        <p>Dein Konto muss erst freigeschaltet werden, bevor du es benutzen kannst.</p>';
+        exit;
     }
-    if (isset($_GET['pwtooshort'])) {
-        echo '<h3>Passwort zu kurz. Bitte mindestens 8 Zeichen</h3>';
+    else {
+        header("Location: ../settings.php");
     }
-    if (isset($_GET['mailalreadytaken'])) {
-        echo '<h3>Diese Mailadresse besteht leider schon</h3>';
-    }
-    if (isset($_GET['pwnotequal'])) {
-        echo '<h3>Passwörter nicht gleich!</h3>';
-    }
-    if (isset($_GET[ 'wrongsymbols'])) {
-        echo '<h3>Verbotene Symbole in Passwort oder Adresse enthalten!</h3>';
-    }
-    echo '<form name="createmailuser" method=POST action="createmailuser.php">
-    <label>Neue email<input type="text" name="newmailusername"/>@roteserver.de (benutze nicht ' .  "'" . ')</label>
-    <label>Neue Passwort<input type="password" name="newmailpw"/>(min. 8 Zeichen, benutze nicht ' .  "'" . ')</label>
-    <label>Neue Passwort wiederholen<input type="password" name="newmailpwrep"/></label>';
-    if ($config['captcha']) {
-    echo '<label><p>Captcha:</p><p>gebe hier bitte den Zahlencode aus dem Bild ein</p><img src="captcha.php"/>
-    <input type="text" name="captchacode"/></label>';
-    }
-    echo '<input type="submit" name="submit" value="Hinzufügen"/>
-    </form>
-    <p>Dein Konto muss erst freigeschaltet werden, bevor du es benutzen kannst.</p>';
-    exit;
 }
 else {
-    header("Location: ../settings.php");
+    header("Location: ../index.php");
 }
 ?>

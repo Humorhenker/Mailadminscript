@@ -23,12 +23,10 @@ try {
 }
 session_start();
 if ($_SESSION['log'] == 1 && $_SESSION['admin']) {
-    $mailuserID = $_POST['mailuserID'];
-    $eintrag = "UPDATE `mailserver`.`virtual_users` SET `active`='1' WHERE `id` LIKE :mailuserID";
+    $eintrag = "DELETE FROM `mailserver`.`virtual_aliases` WHERE `id` LIKE :maillistid";
     $sth = $dbh->prepare($eintrag);
-    $sth->execute(array(':mailuserID' => $mailuserID));
-    header("Location: ../admin.php?success=1");
+    $sth->execute(array(':maillistid' => $_GET['dellistid']));
+    header("Location: maillistsettings.php");
     exit;
 }
-header("Location: ../index.php");
 ?>

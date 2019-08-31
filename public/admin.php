@@ -77,6 +77,7 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
     echo '</select></label>
 <input type="submit" name="submit" value="ENTFERNEN"/>
 </form>
+<a href="bin/maillistsettings.php"><h3>Maillisten Einstellungen</h3></a>
 </body>
 </html>';
     exit;

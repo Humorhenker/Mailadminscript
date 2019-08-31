@@ -23,12 +23,10 @@ try {
 }
 session_start();
 if ($_SESSION['log'] == 1 && $_SESSION['admin']) {
-    $mailuserID = $_POST['mailuserID'];
-    $eintrag = "UPDATE `mailserver`.`virtual_users` SET `active`='1' WHERE `id` LIKE :mailuserID";
+    $eintrag = "INSERT INTO `virtual_aliases` (`domain_id`, `source`, `destination`, `owner`, `private`, `name`) VALUES (1, :source, :destination, :owner, :private, :name)"; // Aliasdaten in MailServer DB eintragen
     $sth = $dbh->prepare($eintrag);
-    $sth->execute(array(':mailuserID' => $mailuserID));
-    header("Location: ../admin.php?success=1");
+    $sth->execute(array('source' => $_POST['maillistsource'], 'destination' => $_POST['maillistadresses'], 'owner' => $_POST['maillistownerid'], 'private' => $_POST['listprivate'], 'name' => $_POST['maillistname']));
+    }
+    header("Location: maillistsettings.php");
     exit;
-}
-header("Location: ../index.php");
 ?>
