@@ -30,26 +30,27 @@ if ($_SESSION['log'] == 1) {
             header("Location: settings.php?wrongsymbols=1");
             exit;
         }
-        $mailusername = $_SESSION['email'];
-        $abfrage = "SELECT `password` FROM `virtual_users` WHERE `email` = :newmailusernamefull";
+        $mailusername = $_SESSION['username'];
+        $maildomain = $_SESSION['domain'];
+        $abfrage = "SELECT `password` FROM `accounts` WHERE `username` = :newmailusername AND `domain` = :newmaildomain";
         $sth = $dbh->prepare($abfrage);
-        $sth->execute(array('newmailusernamefull' => $mailusername));
+        $sth->execute(array(':newmailusername' => $mailusername, ':newmaildomain' => $maildomain));
         $result= $sth->fetchAll();
         $oldpwhashed = $result[0]['password'];
         if (password_verify($oldmailpw, $oldpwhashed)) {
             if (strlen($newmailpw) >= 8) {
                 $newmailpwhashed = password_hash($newmailpw, PASSWORD_ARGON2I, ['memory_cost' => 32768, 'time_cost' => 4]);
-                $eintrag = "UPDATE `virtual_users` SET `password` = :newmailpwhashed WHERE `email` LIKE :mailusername";
+                $eintrag = "UPDATE `accounts` SET `password` = :newmailpwhashed WHERE `username` LIKE :mailusername AND `domain` LIKE :maildomain";
                 $sth = $dbh->prepare($eintrag);
-                $sth->execute(array('newmailpwhashed' => $newmailpwhashed, 'mailusername' => $mailusername));
-                if ($config['maildirencryption']) {
-                    if ($_POST['forcekeyregen']) {
-                        exec('sudo -u vmail /usr/bin/doveadm -o stats_writer_socket_path= -o plugin/mail_crypt_private_password=' . escapeshellarg($newmailpw) . ' mailbox cryptokey generate -U -f -u ' . escapeshellarg($mailusername));
-                    }
-                    else {
-                        exec('sudo -u vmail /usr/bin/doveadm mailbox cryptokey password -o stats_writer_socket_path= -u ' . escapeshellarg($mailusername) . ' -n ' . escapeshellarg($newmailpw) . ' -o' . escapeshellcmd($oldmailpw));
-                    }
-                }
+                $sth->execute(array(':newmailpwhashed' => $newmailpwhashed, ':mailusername' => $mailusername, ':maildomain' => $maildomain));
+                //if ($config['maildirencryption']) {
+                //    if ($_POST['forcekeyregen']) {
+                //        exec('sudo -u vmail /usr/bin/doveadm -o stats_writer_socket_path= -o plugin/mail_crypt_private_password=' . escapeshellarg($newmailpw) . ' mailbox cryptokey generate -U -f -u ' . escapeshellarg($mailusername));
+                //    }
+                //    else {
+                //        exec('sudo -u vmail /usr/bin/doveadm mailbox cryptokey password -o stats_writer_socket_path= -u ' . escapeshellarg($mailusername) . ' -n ' . escapeshellarg($newmailpw) . ' -o' . escapeshellcmd($oldmailpw));
+                //    }
+                //}
                 header("Location: ../settings.php?success=1");
                 exit;
             }

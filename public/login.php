@@ -22,18 +22,18 @@ try {
     //echo 'Connection failled: '. $e->getMessage(); // Errormessage kann Sicherheitsrelevantes enthalen
     echo 'Connection failed';
 }
-$user = $_POST['username'];
+$user = explode('@', $_POST['username']);
 $pw = $_POST['password'];
 
-$abfrage = "SELECT `id`, `password`, `email`, `username`, `admin` FROM `virtual_users` WHERE `email` = :username AND `active`='1'";
+$abfrage = "SELECT `id`, `password`, `admin` FROM `accounts` WHERE `username` = :username AND `domain` = :domain AND `enabled`='1'";
 $sth = $dbh->prepare($abfrage);
-$sth->execute(array(':username' => $user));
+$sth->execute(array(':username' => $user[0], ':domain' => $user[1]));
 $userdata = $sth->fetchAll();
 if ($sth->rowCount() > 0) {
     if (password_verify($pw, $userdata[0]['password'])) {
         $_SESSION['log'] = 1;
-        $_SESSION['username'] = $userdata[0]['username'];
-        $_SESSION['email'] = $userdata[0]['email'];
+        $_SESSION['username'] = $user[0];
+        $_SESSION['domain'] = $user[1];
         $_SESSION['admin'] = $userdata[0]['admin'];
         $_SESSION['mailID'] = $userdata[0]['id'];
         header("Location: settings.php");

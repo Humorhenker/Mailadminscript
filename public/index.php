@@ -35,7 +35,7 @@ if (!isset($_SESSION['log']) OR $_SESSION['log'] != 1) {
         echo '<h3>Neues Konto erstellen:</h3>
         <a href="bin/createmailpre.php"><button>Kontoerstellung</button></a>';
     }
-    echo '
+    echo '<a href="unsub.php">Von einer Maillingliste abmelden</a>
     </body>
     </html>
     ';

@@ -22,11 +22,23 @@ try {
     echo 'Connection failed';
 }
 session_start();
-if ($_SESSION['log'] == 1 && $_SESSION['admin']) {
-    $eintrag = "DELETE FROM `mailserver`.`virtual_aliases` WHERE `id` LIKE :maillistid";
+if ($_SESSION['log'] == 1) {
+    if (!$_SESSION['admin']) {
+        $abfrage = "SELECT `alias_id` FROM `alias_owner` WHERE `owner_username` LIKE :owner_username AND `owner_domain` LIKE :owner_domain AND alias_id LIKE :editlistid";
+        $result = $dbh->prepare($abfrage);
+        $result->execute(array(':owner_username' => $_SESSION['username'], ':owner_domain' => $_SESSION['domain'], ':editlistid' => $_GET['editlistid']));
+        if ($result->rowCount() <= 0) {
+            header("Location: maillistsettings.php");
+            exit;
+        }
+    }
+    $eintrag = "DELETE FROM `aliases` WHERE `alias_id` LIKE :aliasid;  DELETE FROM `alias_owner` WHERE `alias_id` LIKE :aliasid; DELETE FROM `alias_details` WHERE `id` LIKE :aliasid";
     $sth = $dbh->prepare($eintrag);
-    $sth->execute(array(':maillistid' => $_GET['dellistid']));
+    $sth->execute(array(':aliasid' => $_GET['dellistid']));
     header("Location: maillistsettings.php");
+    exit;
+} else {
+    header("Location: ../index.php");
     exit;
 }
 ?>

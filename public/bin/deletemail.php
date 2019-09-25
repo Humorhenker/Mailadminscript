@@ -47,15 +47,11 @@ if ($_SESSION['log'] == 1) {
     else {
         $mailuserID = $_SESSION['mailID'];
     }
-    $abfrage = "SELECT `username` FROM `virtual_users` WHERE `id` = :mailuserID";
-    $sth = $dbh->prepare($abfrage);
-    $sth->execute(array('mailuserID' => $mailuserID));
-    $result = $sth->fetchAll();
-    $eintrag = "DELETE FROM `mailserver`.`virtual_users` WHERE `id` LIKE :mailuserID";
+    $eintrag = "DELETE FROM `accounts` WHERE `id` LIKE :mailuserID";
     $sth = $dbh->prepare($eintrag);
     $sth->execute(array(':mailuserID' => $mailuserID));
-    $maildirpath = $config['mailfolderpath'] . $result[0]['username'];
-    delete_directory($maildirpath);
+    //$maildirpath = $config['mailfolderpath'] . $result[0]['username'];
+    //delete_directory($maildirpath);
     header("Location: ../admin.php?success=1");
     exit;
 }

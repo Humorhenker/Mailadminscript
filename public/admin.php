@@ -25,7 +25,7 @@ session_start();
 if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
     echo '<html>
 <head>
-<title>Roteserver - Mail Admin Settings</title>
+<title>Mail Admin Settings</title>
 </head>
 <body>
 <h1>Mail Admin Settings:</h1>';
@@ -39,10 +39,10 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
     echo '<h3>Mailadresse aktivieren:</h3>
 <form name="activatemail" method=POST action="bin/activatemail.php">
 <label>Activate Mail:<select name="mailuserID">';
-    $abfrage = "SELECT `id`, `email` FROM `virtual_users` WHERE `active` LIKE 0";
+    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` WHERE `enabled` LIKE 0";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
-        echo '<option value="' . $emails['id'] . '">' . $emails['email'] . '</option>';
+        echo '<option value="' . $emails['id'] . '">' . $emails['username'] . '@' . $emails['domain'] . '</option>';
     }
     echo '</select></label>
 <input type="submit" name="submit" value="aktivieren"/>';
@@ -51,17 +51,23 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
 <h3>Mailadresse deaktivieren:</h3>
 <form name="deactivatemail" method=POST action="bin/deactivatemail.php">
 <label>Deactivate Mail:<select name="mailuserID">';
-    $abfrage = "SELECT `id`, `email` FROM `virtual_users` WHERE `active` LIKE 1";
+    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` WHERE `enabled` LIKE 1";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
-        echo '<option value="' . $emails['id'] . '">' . $emails['email'] . '</option>';
+        echo '<option value="' . $emails['id'] . '">' . $emails['username'] . '@' . $emails['domain'] . '</option>';
     }
     echo '</select></label>
 <input type="submit" name="submit" value="deaktivieren"/>
 </form>
 <h3>Emailadresse hinzufügen:</h3>
 <form name="createmailuser" method=POST action="bin/createmailuser.php">
-<label>Neue email<input type="text" name="newmailusername"/>@roteserver.de (benutze nicht ' .  "'" . ')</label>
+<label>Neue email<input type="text" name="newmailusername"/>@<select name="newmaildomainid">';
+    $abfrage = "SELECT `id`, `domain` FROM `domains`";
+    $result = $dbh->query($abfrage);
+    while ($domains = $result->fetch()) {
+        echo '<option value="' . $domains['id'] . '">' . $domains['domain'] . '</option>';
+    }
+echo '</select> (benutze nicht ' .  "'" . ')</label>
 <label>Neues Passwort<input type="password" name="newmailpw"/>(min. 8 Zeichen, benutze nicht ' .  "'" . ')</label>
 <label>Neues Passwort wiederholen<input type="password" name="newmailpwrep"/></label>
 <input type="submit" name="submit" value="Hinzufügen"/>
@@ -69,10 +75,10 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
 <h3>Emailadresse entfernen:</h3>
 <form name="deletemail" method=POST action="bin/deletemail.php">
 <label>Delete Mail:<select name="mailuserID">';
-    $abfrage = "SELECT `id`, `email` FROM `virtual_users`";
+    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts`";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
-        echo '<option value="' . $emails['id'] . '">' . $emails['email'] . '</option>';
+        echo '<option value="' . $emails['id'] . '">' . $emails['username'] . '@' . $emails['domain'] . '</option>';
     }
     echo '</select></label>
 <input type="submit" name="submit" value="ENTFERNEN"/>

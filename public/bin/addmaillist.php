@@ -23,10 +23,23 @@ try {
 }
 session_start();
 if ($_SESSION['log'] == 1 && $_SESSION['admin']) {
-    $eintrag = "INSERT INTO `virtual_aliases` (`domain_id`, `source`, `destination`, `owner`, `private`, `name`) VALUES (1, :source, :destination, :owner, :private, :name)"; // Aliasdaten in MailServer DB eintragen
+    $eintrag = "INSERT INTO `alias_details` (`name`, `owners`, `destinations`, `security`) VALUES (:newlistname, :owners, :destinations, :security)"; // Aliasdaten in MailServer DB eintragen
     $sth = $dbh->prepare($eintrag);
-    $sth->execute(array('source' => $_POST['maillistsource'], 'destination' => $_POST['maillistadresses'], 'owner' => $_POST['maillistownerid'], 'private' => $_POST['listprivate'], 'name' => $_POST['maillistname']));
+    $sth->execute(array(':newlistname' => $_POST['newlistname'], ':owners' => $_POST['newlistowners'], ':destinations' => $_POST['newlistdestinations'], ':security' => $_POST['newlistsecurity']));
+    $newlistid = $dbh->lastInsertID();
+    foreach (explode(' ', $_POST['newlistowners']) as $maillistowner) {
+        $maillistownerex = explode('@', $maillistowner);
+        $eintrag = "INSERT INTO `alias_owner` (`alias_id`, `owner_username`, `owner_domain`) VALUES (:aliasid, :owner_username, :owner_domain)"; // Aliasdaten in MailServer DB eintragen
+        $sth = $dbh->prepare($eintrag);
+        $sth->execute(array(':aliasid' => $newlistid, ':owner_username' => $maillistownerex[0], ':owner_domain' => $maillistownerex[1]));
     }
+    foreach (explode(' ', $_POST['newlistdestinations']) as $maillistdestination) {
+        $maillistdestinationex = explode('@', $maillistdestination);
+        $eintrag = "INSERT INTO `aliases` (`alias_id`, `source_username`, `source_domain`, `destination_username`, `destination_domain`) VALUES (:aliasid, :source_username, :source_domain, :destination_username, :destination_domain)"; // Aliasdaten in MailServer DB eintragen
+        $sth = $dbh->prepare($eintrag);
+        $sth->execute(array(':aliasid' => $newlistid, ':source_username' => $_POST['newlistsourceadress'], ':source_domain' => $_POST['newlistsourcedomain'], ':destination_username' => $maillistdestinationex[0], ':destination_domain' => $maillistdestinationex[1]));
+    }
+}
     header("Location: maillistsettings.php");
     exit;
 ?>

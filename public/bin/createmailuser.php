@@ -21,121 +21,130 @@ try {
     //echo 'Connection failled: '. $e->getMessage(); // Errormessage kann Sicherheitsrelevantes enthalen
     echo 'Connection failed';
 }
-if ($config['allowregistration']) {
-
-    function createmailuser($newmailusername, $newmailpw, $newmailpwrep, $admin) {
-        global $dbh;
-        global $config;
-        $pattern = array();
-        $pattern[0] = ' ';
-        $pattern[1] = '@';
-        $pattern[2] = 'roteserver';
-        $pattern[3] = 'roteserver.de';
-        $pattern[4] = 'admin';
-        $pattern[5] = 'noreply';
-        $pattern[6] = 'info';
-        $pattern[7] = 'webmaster';
-        $newmailusername =  str_replace($pattern, "", $newmailusername);
-        $newmailusernamefull = $newmailusername . '@roteserver.de';
-        if (!filter_var($newmailuserfull, FILTER_VALIDATE_EMAIL)) {
-            // nicht ordentliche EmailAdresse
+function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmailpwrep, $admin) {
+    global $dbh;
+    global $config;
+    $abfrage = "SELECT domain FROM `domains` WHERE `id` LIKE :newmaildomainid";
+    $sth = $dbh->prepare($abfrage);
+    $sth->execute(array(':newmaildomainid' => $newmaildomainid));
+    $result = $sth->fetchAll();
+    $newmaildomain = $result[0]['domain'];
+    $pattern = array();
+    $pattern[0] = ' ';
+    $pattern[1] = '@';
+    if ($config['prohibadminmailcreation']) {
+        $pattern[2] = 'admin';
+        $pattern[3] = 'noreply';
+        $pattern[4] = 'info';
+        $pattern[5] = 'webmaster';
+    }
+    $newmailusername =  str_replace($pattern, "", $newmailusername);
+    $newmailusernamefull = $newmailusername . '@' . $newmaildomain;
+    if (!filter_var($newmailusernamefull, FILTER_VALIDATE_EMAIL)) {
+        // nicht ordentliche EmailAdresse
+        header("Location: createmailpre.php?wrongsymbols=1");
+        exit;
+    }
+    if(strpos($newmailusername, "'") !== false) {
+        if ($admin == 1) {
+            header("Location: ../admin.php?fehler=Falsche Zeichen in Adresse");
+            exit;
+        } else {
+            header("Location: createmailpre.php?wrongsymbols=1");
+            exit;
+        }    
+    }
+    if (strpos($newmailpw, "'") !== false) {
+        if ($admin == 1) {
+            header("Location: ../admin.php?fehler=Falsche Zeichen in Passwort");
+            exit;
+        } else {
             header("Location: createmailpre.php?wrongsymbols=1");
             exit;
         }
-        if(strpos($newmailusername, "'") !== false) {
-            if ($admin == 1) {
-                header("Location: ../admin.php?fehler=Falsche Zeichen in Adresse");
-                exit;
-            } else {
-                header("Location: createmailpre.php?wrongsymbols=1");
-                exit;
-            }    
-        }
-        if (strpos($newmailpw, "'") !== false) {
-            if ($admin == 1) {
-                header("Location: ../admin.php?fehler=Falsche Zeichen in Passwort");
-                exit;
-            } else {
-                header("Location: createmailpre.php?wrongsymbols=1");
-                exit;
-            }
-        }
-        if (strlen($newmailpw) >= 8) {
-            if ($newmailpw == $newmailpwrep) {
-                $abfrage = "SELECT 1 FROM `virtual_users` WHERE `email` = :newmailusernamefull";
-                $sth = $dbh->prepare($abfrage);
-                $sth->execute(array('newmailusernamefull' => $newmailusernamefull));
-                $result = $sth->fetchAll();
-                if ($result[0][1] !== 1) {
-                    $newmailpwhashed = password_hash($newmailpw, PASSWORD_ARGON2I, ['memory_cost' => 32768, 'time_cost' => 4]);
-                    $createdtimestamp = date("Y-m-d H:i:s");
-                    if ($config['maildirencryption']) {
-                        $eintrag = "INSERT INTO `virtual_users` (`domain_id`, `password`, `email`, `username`, `active`, `created`, `pre-pw-key`, `pw-key`, `admin`) VALUES ('1', :newmailpwhashed, :newmailusernamefull, :newmailusername, '1', '$createdtimestamp', '0', '0', '0')"; // Maildaten in MailServer DB eintragen
-                        $sth = $dbh->prepare($eintrag); // der Nutzer muss erst kurzzeitig aktive geschaltet werden, damit die cryptkeys erstellt werden können. Danach wird er direkt wieder deaktiviert.
-                        $sth->execute(array('newmailpwhashed' => $newmailpwhashed, 'newmailusernamefull' => $newmailusernamefull, 'newmailusername' =>$newmailusername));
-                        $maildirpath = $config['mailfolderpath'] . $newmailusername;
-                        umask(0);
-                        mkdir($maildirpath, 0770);
-                        exec('sudo -u vmail /usr/bin/doveadm -o stats_writer_socket_path= -o plugin/mail_crypt_private_password=' . escapeshellarg($newmailpw) . ' mailbox cryptokey generate -U -f -u ' . escapeshellarg($newmailusernamefull));
-                        $eintrag = "UPDATE `mailserver`.`virtual_users` SET `active`='0' WHERE `email` LIKE :newmailusernamefull";
-                    }
-                    else {
-                        $eintrag = "INSERT INTO `virtual_users` (`domain_id`, `password`, `email`, `username`, `active`, `created`) VALUES ('1', :newmailpwhashed, :newmailusernamefull, :newmailusername, '0', '$createdtimestamp')"; // Maildaten in MailServer DB eintragen
-                        $sth = $dbh->prepare($eintrag); // der Nutzer muss erst kurzzeitig aktive geschaltet werden, damit die cryptkeys erstellt werden können. Danach wird er direkt wieder deaktiviert.
-                        $sth->execute(array('newmailpwhashed' => $newmailpwhashed, 'newmailusernamefull' => $newmailusernamefull, 'newmailusername' => $newmailusername));
-                        $maildirpath = $config['mailfolderpath'] . $newmailusername;
-                        umask(0);
-                        mkdir($maildirpath, 0770);
-                    }
+    }
+    if (strlen($newmailpw) >= 8) {
+        if ($newmailpw == $newmailpwrep) {
+            $abfrage = "SELECT 1 FROM `accounts` WHERE `username` = :newmailusername AND `domain` = :newmaildomain";
+            $sth = $dbh->prepare($abfrage);
+            $sth->execute(array(':newmailusername' => $newmailusername, ':newmaildomain' => $newmaildomain));
+            $result = $sth->fetchAll();
+            print_r($result);
+            if ($result[0][1] !== 1) {
+                $newmailpwhashed = password_hash($newmailpw, PASSWORD_ARGON2I, ['memory_cost' => 32768, 'time_cost' => 4]);
+                //$createdtimestamp = date("Y-m-d H:i:s");
+                // if ($config['maildirencryption']) {
+                //     $eintrag = "INSERT INTO `virtual_users` (`domain_id`, `password`, `email`, `username`, `active`, `created`, `pre-pw-key`, `pw-key`, `admin`) VALUES ('1', :newmailpwhashed, :newmailusernamefull, :newmailusername, '1', '$createdtimestamp', '0', '0', '0')"; // Maildaten in MailServer DB eintragen
+                //     $sth = $dbh->prepare($eintrag); // der Nutzer muss erst kurzzeitig aktive geschaltet werden, damit die cryptkeys erstellt werden können. Danach wird er direkt wieder deaktiviert.
+                //     $sth->execute(array('newmailpwhashed' => $newmailpwhashed, 'newmailusernamefull' => $newmailusernamefull, 'newmailusername' =>$newmailusername));
+                //     $maildirpath = $config['mailfolderpath'] . $newmailusername;
+                //     umask(0);
+                //     mkdir($maildirpath, 0770);
+                //     exec('sudo -u vmail /usr/bin/doveadm -o stats_writer_socket_path= -o plugin/mail_crypt_private_password=' . escapeshellarg($newmailpw) . ' mailbox cryptokey generate -U -f -u ' . escapeshellarg($newmailusernamefull));
+                //     $eintrag = "UPDATE `mailserver`.`virtual_users` SET `active`='0' WHERE `email` LIKE :newmailusernamefull";
+                // }
+                //else {
+                    $eintrag = "INSERT INTO `accounts` (`username`, `domain`, `password`, `quota`, `enabled`, `sendonly`, `admin`) VALUES (:newmailusername, :newmaildomain, :newmailpwhashed, '2048', '1', '0', '0')"; // Maildaten in MailServer DB eintragen
                     $sth = $dbh->prepare($eintrag);
-                    $sth->execute(array(':newmailusernamefull' => $newmailusernamefull));
-                    $adminmailadress = $config['adminadress'];
-                    $adresse = $config['domain'] . '/admin.php';
-                    // eine Mail an den Admin verschicken, damit er die Mail freischalten kann
+                    $sth->execute(array(':newmailusername' => $newmailusername, ':newmaildomain' => $newmaildomain, ':newmailpwhashed' => $newmailpwhashed));
+                    //$maildirpath = $config['mailfolderpath'] . $newmailusername;
+                //    umask(0);
+                //    mkdir($maildirpath, 0770);
+                //}
+                //$sth = $dbh->prepare($eintrag);
+                //$sth->execute(array(':newmailusernamefull' => $newmailusernamefull));
+                $adminmailadress = $config['adminadress'];
+                $adresse = $config['domain'] . '/admin.php';
+                // eine Mail an den Admin verschicken, damit er die Mail freischalten kann
+                if ($config['sendactivationinfo']) {
                     mail($adminmailadress, "Neue Mailadresse erstellt", "Eine neue Mailadresse wurde erstellt und muss freigeschaltet werden. \n \n" . htmlspecialchars($newmailusernamefull) . "\n " . $adresse, "From: mailservice");
-                    if ($admin == 1) {
-                        header("Location: ../admin.php?success=1");
-                        exit;
-                    } else {
-                        header("Location: ../index.php");
-                        exit;
-                    }
-                    exit;
-                } else { // Emailadresse ist bereits registriert
-                    if ($admin == 1) {
-                        header("Location: ../admin.php?fehler=Mail besteht schon");
-                        exit;
-                    } else {
-                        header("Location: createmailpre.php?mailalreadytaken=1");
-                        exit;
-                    }
                 }
-            }
-            else {
                 if ($admin == 1) {
-                    header("Location: ../admin.php?fehler=PW nicht gleich");
+                    header("Location: ../admin.php?success=1");
                     exit;
                 } else {
-                    header("Location: createmailpre.php?pwnotequal=1");
+                    header("Location: ../index.php");
+                    exit;
+                }
+                exit;
+            } else { // Emailadresse ist bereits registriert
+                if ($admin == 1) {
+                    header("Location: ../admin.php?fehler=Mail besteht schon");
+                    exit;
+                } else {
+                    header("Location: createmailpre.php?mailalreadytaken=1");
                     exit;
                 }
             }
-        } else { // Passwort zu kurz
+        }
+        else {
             if ($admin == 1) {
-                header("Location: ../admin.php?fehler=PW zu kurz");
+                header("Location: ../admin.php?fehler=PW nicht gleich");
                 exit;
             } else {
-                header("Location: createmailpre.php?pwtooshort=1");
+                header("Location: createmailpre.php?pwnotequal=1");
                 exit;
             }
         }
+    } else { // Passwort zu kurz
+        if ($admin == 1) {
+            header("Location: ../admin.php?fehler=PW zu kurz");
+            exit;
+        } else {
+            header("Location: createmailpre.php?pwtooshort=1");
+            exit;
+        }
     }
-    session_start();
-    if ($_SESSION['log'] == 1 AND $_SESSION['admin'] == 1) {
-        createmailuser($_POST['newmailusername'], $_POST['newmailpw'], $_POST['newmailpwrep'], 1);
-    }
+}
+session_start();
+if ($_SESSION['log'] == 1 AND $_SESSION['admin'] == 1) {
+    print_r($_POST);
+    createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], 1);
+    exit;
+}
+if ($config['allowregistration']) {
     if ($_POST['captchacode'] == $_SESSION['captchacode']) {
-        createmailuser($_POST['newmailusername'], $_POST['newmailpw'], $_POST['newmailpwrep'], 0);
+        createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], 0);
     }
     elseif ($_POST['captchacode'] != $_SESSION['captchacode']) {
         header("Location: createmailpre.php?wrongcaptchacode=1");

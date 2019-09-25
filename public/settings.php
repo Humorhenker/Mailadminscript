@@ -25,10 +25,15 @@ session_start();
 if ($_SESSION['log'] == 1) {
     echo '<html>
     <head>
-    <title>Roteserver - Mail Settings</title>
+    <title>Mail Settings</title>
     </head>
     <body>
-    <h1>Mail Settings:</h1>';
+    <h1>Mail Settings:</h1><p>Guten Tag, ' . $_SESSION['username'] . '@' . $_SESSION['domain'] . '</p>';
+    $randval = rand(0, 99);
+    echo '<!-- '. $randval . ' -->';
+    if (rand(0,99) == 42) {
+        echo '<img src="img/mailcat.gif"/><br>';
+    }
     if (isset($_GET['success'])) {
         echo '<p>Erfolgreich geändert.</p>';
     }
@@ -36,17 +41,27 @@ if ($_SESSION['log'] == 1) {
         echo '<h3>Passwörter nicht gleich!</h3>';
     }
     if ($_SESSION['admin'] == 1) {
-        echo '<a href="admin.php"><p>Admin-Settings</p></a>';
+        echo '<a href="admin.php"><p>Admin-Settings (inklusive Maillisten)</p></a>';
+    }
+    else {
+        $abfrage = "SELECT `alias_id` FROM `alias_owner` WHERE `owner_username` LIKE :owner_username AND `owner_domain` LIKE :owner_domain";
+        $result = $dbh->prepare($abfrage);
+        $result->execute(array(':owner_username' => $_SESSION['username'], ':owner_domain' => $_SESSION['domain']));
+        if ($result->rowCount() > 0) {
+            echo '<a href="bin/maillistsettings.php"><p>Meine Maillisten verwalten</p></a>';
+        }
     }
     echo '<a href="logout.php"><button>Logout</button></a>';
     echo '<h3>Passwort ändern:</h3>
     <form name="changemailpw" method=POST action="bin/changemailpw.php">
-    <label>Altes Passwort<input type="password" name="oldmailpw"/></label>
-    <label>Neues Passwort<input type="password" name="newmailpw"/>(min. 8 Zeichen, benutze nicht ' .  "'" . ')</label>
-    <label>Neue Passwort wiederholen<input type="password" name="newmailpwrep"/></label>
-    <label><p style="font-size: x-small">Schlüssel-Neuerstellung erzwingen</p><p style="font-size: small">ACHTUNG! Alle alten Mails werden dann wahrscheinlich nicht mehr lesbar sein!<input type="checkbox" name="forcekeyregen"/></p></label>
-    <input type="submit" value="Abschicken"/>
-    <h3>Mailadresse löschen:</h3>
+    <label>Altes Passwort: <input type="password" name="oldmailpw"/></label>
+    <label>Neues Passwort: <input type="password" name="newmailpw"/>(min. 8 Zeichen, benutze nicht ' .  "'" . ')</label>
+    <label>Neue Passwort wiederholen: <input type="password" name="newmailpwrep"/></label>';
+    if ($config['maildirencryption']) {
+        echo '<label><p style="font-size: x-small">Schlüssel-Neuerstellung erzwingen</p><p style="font-size: small">ACHTUNG! Alle alten Mails werden dann wahrscheinlich nicht mehr lesbar sein!<input type="checkbox" name="forcekeyregen"/></p></label>';
+    }
+    echo '<input type="submit" value="Abschicken"/>
+    <h3>Diese Mailadresse löschen:</h3>
     <form name="deletemail" method=POST action="bin/deletemail.php">
     <input type="submit" value="LÖSCHEN"/>
     </form>';
