@@ -33,7 +33,7 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
         echo 'Erfolgreich geändert.';
     }
     if (isset($_GET['fehler'])) {
-        echo '<h3>Fehler: ' . $_GET['fehler'] . '</h3>';
+        echo '<h3>Fehler: ' . htmlentities($_GET['fehler']) . '</h3>';
     }
     echo '<a href="settings.php"><p>Normale Einstellungen</p></a><a href="logout.php"><button>Logout</button></a>';
     echo '<h3>Mailadresse aktivieren:</h3>
@@ -42,7 +42,7 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
     $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` WHERE `enabled` LIKE 0";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
-        echo '<option value="' . $emails['id'] . '">' . $emails['username'] . '@' . $emails['domain'] . '</option>';
+        echo '<option value="' . htmlentities($emails['id']) . '">' . htmlentities($emails['username']) . '@' . htmlentities($emails['domain']) . '</option>';
     }
     echo '</select></label>
 <input type="submit" name="submit" value="aktivieren"/>';
@@ -54,7 +54,7 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
     $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` WHERE `enabled` LIKE 1";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
-        echo '<option value="' . $emails['id'] . '">' . $emails['username'] . '@' . $emails['domain'] . '</option>';
+        echo '<option value="' . htmlentities($emails['id']) . '">' . htmlentities($emails['username']) . '@' . htmlentities($emails['domain']) . '</option>';
     }
     echo '</select></label>
 <input type="submit" name="submit" value="deaktivieren"/>
@@ -65,7 +65,7 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
     $abfrage = "SELECT `id`, `domain` FROM `domains`";
     $result = $dbh->query($abfrage);
     while ($domains = $result->fetch()) {
-        echo '<option value="' . $domains['id'] . '">' . $domains['domain'] . '</option>';
+        echo '<option value="' . htmlentities($domains['id']) . '">' . htmlentities($domains['domain']) . '</option>';
     }
 echo '</select> (benutze nicht ' .  "'" . ')</label>
 <label>Neues Passwort<input type="password" name="newmailpw"/>(min. 8 Zeichen, benutze nicht ' .  "'" . ')</label>
@@ -78,7 +78,7 @@ echo '</select> (benutze nicht ' .  "'" . ')</label>
     $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts`";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
-        echo '<option value="' . $emails['id'] . '">' . $emails['username'] . '@' . $emails['domain'] . '</option>';
+        echo '<option value="' . htmlentities($emails['id']) . '">' . htmlentities($emails['username']) . '@' . $emails['domain'] . '</option>';
     }
     echo '</select></label>
 <input type="submit" name="submit" value="ENTFERNEN"/>

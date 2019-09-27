@@ -45,7 +45,7 @@ echo '<h2>Mailliste Abmeldung:</h2>
     <form method="POST" action="bin/unsubmaillistpre.php">
     <label>Maillistadresse: <input name="source_adress" type="text"';
     if (isset($_GET['maillist'])) {
-        echo 'value="' . htmlspecialchars($_GET['maillist']) . '" readonly="true"';
+        echo 'value="' . htmlentities($_GET['maillist']) . '" readonly="true"';
     }
     echo '/></label>
     <label>Nutzeradresse: <input name="destination_adress" type="text"/></label>

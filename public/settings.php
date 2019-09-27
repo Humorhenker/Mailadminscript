@@ -28,7 +28,7 @@ if ($_SESSION['log'] == 1) {
     <title>Mail Settings</title>
     </head>
     <body>
-    <h1>Mail Settings:</h1><p>Guten Tag, ' . $_SESSION['username'] . '@' . $_SESSION['domain'] . '</p>';
+    <h1>Mail Settings:</h1><p>Guten Tag, ' . htmlentities($_SESSION['username']) . '@' . htmlentities($_SESSION['domain']) . '</p>';
     $randval = rand(0, 99);
     echo '<!-- '. $randval . ' -->';
     if (rand(0,99) == 42) {
