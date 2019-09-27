@@ -29,14 +29,11 @@ echo '<html>
     <title>Abmelden</title>
     </head>
     <body>';
-if (isset($_GET['unknown'])) {
-    echo '<p>Diese Adresse ist dieser Liste nicht zugeordnet</p>';
-}
 if (isset($_GET['unknowntoken'])) {
     echo '<p>Unbekannter Abmeldetoken. Erneut veruschen?</p>';
 }
 if (isset($_GET['mailsent'])) {
-    echo '<h3>Wir haben dir eine Email mit einem Link zur Bestätigung deiner Abmeldung geschickt. Der Link in der Mail ist 2 Tage gültig</h3>';
+    echo '<h3>Falls die angegebene E-Mail-Adresse auf der Mailingliste steht, haben wir dir eine Email mit einem Link zur Bestätigung deiner Abmeldung geschickt. Der Link in der Mail ist 2 Tage gültig</h3>';
 }
 if (isset($_GET['success'])) {
     echo '<p>Erfolgreich abgemeldet</p>';

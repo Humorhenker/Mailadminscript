@@ -71,7 +71,7 @@ if ($result->rowCount() > 0) {
     exit;
 }
 else {
-    header("Location: ../unsub.php?unknown=1");
+    header("Location: ../unsub.php?mailsent=1");
     exit;
 }
 ?>
