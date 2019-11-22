@@ -21,44 +21,30 @@ try {
     //echo 'Connection failled: '. $e->getMessage(); // Errormessage kann Sicherheitsrelevantes enthalen
     echo 'Connection failed';
 }
-function delete_directory($dirname)
-{
-    if (is_dir($dirname))
-        $dir_handle = opendir($dirname);
-    if (!$dir_handle)
-        return false;
-    while ($file = readdir($dir_handle)) {
-        if ($file != "." && $file != "..") {
-            if (!is_dir($dirname . "/" . $file))
-                unlink($dirname . "/" . $file);
-            else
-                delete_directory($dirname . '/' . $file);
+session_start();
+if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
+    if (strpos($_POST['newmailpw'] , "'") !== false) {
+        header("Location: ../admin.php?wrongsymbols=1");
+        exit;
+    }
+    if ($_POST['newmailpw'] == $_POST['newmailpwrep']) {
+        if (strlen($_POST['newmailpw'] ) >= 8) {
+            $newmailpwhashed = password_hash($_POST['newmailpw'] , PASSWORD_ARGON2I, ['memory_cost' => 32768, 'time_cost' => 4]);
+            $eintrag = "UPDATE `accounts` SET `password` = :newmailpwhashed WHERE `id` LIKE :id";
+            $sth = $dbh->prepare($eintrag);
+            $sth->execute(array(':newmailpwhashed' => $newmailpwhashed, ':id' => $_POST['changemailid']));
+            header("Location: ../settings.php?success=1");
+            exit;
+        }
+        else {
+            header("Location: ../admin.php?pwtoshort=1");
+            exit;
         }
     }
-    closedir($dir_handle);
-    rmdir($dirname);
-    return true;
-}
-session_start();
-if ($_SESSION['log'] == 1) {
-    if ($_SESSION['admin'] == 1) {
-        $mailuserID = $_POST['mailuserID'];
-    }
     else {
-        $mailuserID = $_SESSION['mailID'];
+        header("Location: ../admin.php?pwnotequal=1");
+        exit;
     }
-    $eintrag = "DELETE FROM `accounts` WHERE `id` LIKE :mailuserID";
-    $sth = $dbh->prepare($eintrag);
-    $sth->execute(array(':mailuserID' => $mailuserID));
-    //$maildirpath = $config['mailfolderpath'] . $result[0]['username'];
-    //delete_directory($maildirpath);
-    if ($_SESSION['admin'] == 1) {
-        header("Location: ../admin.php?success=1");
-    }
-    else {
-        header("Location: ../logout.php");
-    }
-    exit;
 }
-header("Location: ../index.php");
+header("Location: index.php");
 ?>

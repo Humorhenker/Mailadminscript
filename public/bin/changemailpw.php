@@ -27,7 +27,7 @@ if ($_SESSION['log'] == 1) {
         $newmailpw = $_POST['newmailpw'];
         $oldmailpw = $_POST['oldmailpw'];
         if (strpos($newmailpw, "'") !== false) {
-            header("Location: settings.php?wrongsymbols=1");
+            header("Location: ../settings.php?wrongsymbols=1");
             exit;
         }
         $mailusername = $_SESSION['username'];

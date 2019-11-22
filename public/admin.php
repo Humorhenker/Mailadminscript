@@ -72,6 +72,18 @@ echo '</select> (benutze nicht ' .  "'" . ')</label>
 <label>Neues Passwort wiederholen<input type="password" name="newmailpwrep"/></label>
 <input type="submit" name="submit" value="Hinzufügen"/>
 </form>
+<h3>Passwort einer Email-Adresse ändern:</h3>
+<form name="changemailpwadm" method=POST action="bin/changemailpwadm.php">
+<label>Zu ändernde Mail:<select name="changemailid">';
+    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts`";
+    $result = $dbh->query($abfrage);
+    while ($emails = $result->fetch()) {
+        echo '<option value="' . htmlentities($emails['id']) . '">' . htmlentities($emails['username']) . '@' . $emails['domain'] . '</option>';
+    }
+    echo '</select></label>';
+    echo '<label>Neues Passwort: <input type="password" name="newmailpw" /></label><label>Neues Passwort wiederholen: <input type="password" name="newmailpwrep" /></label>
+<input type="submit" name="submit" value="ÄNDERN"/>
+</form>
 <h3>Emailadresse entfernen:</h3>
 <form name="deletemail" method=POST action="bin/deletemail.php">
 <label>Delete Mail:<select name="mailuserID">';

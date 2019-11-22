@@ -69,7 +69,7 @@ function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmail
             $sth = $dbh->prepare($abfrage);
             $sth->execute(array(':newmailusername' => $newmailusername, ':newmaildomain' => $newmaildomain));
             $result = $sth->fetchAll();
-            print_r($result);
+            //print_r($result);
             if ($result[0][1] !== 1) {
                 $newmailpwhashed = password_hash($newmailpw, PASSWORD_ARGON2I, ['memory_cost' => 32768, 'time_cost' => 4]);
                 //$createdtimestamp = date("Y-m-d H:i:s");
@@ -84,7 +84,7 @@ function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmail
                 //     $eintrag = "UPDATE `mailserver`.`virtual_users` SET `active`='0' WHERE `email` LIKE :newmailusernamefull";
                 // }
                 //else {
-                    $eintrag = "INSERT INTO `accounts` (`username`, `domain`, `password`, `quota`, `enabled`, `sendonly`, `admin`) VALUES (:newmailusername, :newmaildomain, :newmailpwhashed, '2048', '1', '0', '0')"; // Maildaten in MailServer DB eintragen
+                    $eintrag = "INSERT INTO `accounts` (`username`, `domain`, `password`, `quota`, `enabled`, `forcepwreset`, `sendonly`, `admin`) VALUES (:newmailusername, :newmaildomain, :newmailpwhashed, '2048', '1', '0', '0', '0')"; // Maildaten in MailServer DB eintragen
                     $sth = $dbh->prepare($eintrag);
                     $sth->execute(array(':newmailusername' => $newmailusername, ':newmaildomain' => $newmaildomain, ':newmailpwhashed' => $newmailpwhashed));
                     //$maildirpath = $config['mailfolderpath'] . $newmailusername;
@@ -138,8 +138,9 @@ function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmail
 }
 session_start();
 if ($_SESSION['log'] == 1 AND $_SESSION['admin'] == 1) {
-    print_r($_POST);
+    //print_r($_POST);
     createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], 1);
+    header("Location: ../admin.php");
     exit;
 }
 if ($config['allowregistration']) {

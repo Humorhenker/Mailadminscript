@@ -60,12 +60,11 @@ if ($_SESSION['log'] == 1) {
     if ($config['maildirencryption']) {
         echo '<label><p style="font-size: x-small">Schlüssel-Neuerstellung erzwingen</p><p style="font-size: small">ACHTUNG! Alle alten Mails werden dann wahrscheinlich nicht mehr lesbar sein!<input type="checkbox" name="forcekeyregen"/></p></label>';
     }
-    echo '<input type="submit" value="Abschicken"/>
+    echo '<input type="submit" value="Abschicken"/></form>
     <h3>Diese Mailadresse löschen:</h3>
     <form name="deletemail" method=POST action="bin/deletemail.php">
     <input type="submit" value="LÖSCHEN"/>
     </form>';
-
     echo '</body>
     </html>';
     exit;
