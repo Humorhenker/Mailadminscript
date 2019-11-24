@@ -61,7 +61,7 @@ if ($_SESSION['log'] == 1) {
         <option value="1">1 (Mitglieder und Besitzer der Liste können Mails an die Liste schicken)</option>
         <option value="2">2 (Nur Besitzer der Liste können Mails an die Liste schicken)</option>
         </select></label><br>
-        <input type="submit" name="submit" value="Hinzufügen"/>
+        <input type="submit" name="submit" value="Hinzufügen"/></form>
         <br><h3>Bestehende Listen:</h3>';
     }
     else {
@@ -76,7 +76,7 @@ if ($_SESSION['log'] == 1) {
         $result = $dbh->prepare($abfrage);
         $result->execute(array(':aliasid' => substr($aliasids, 0, -1)));
     }
-    echo '<table style="text-align: center; vertical-align: middle;"><tr><th>Listenname</th><th>Listenadresse</th><th>Listenempfänger</th><th>Listenbesitzer</th><th>Listensicherheit</th><th>Optionen</th></tr>';
+    echo '<table border="1" style="text-align: center; vertical-align: middle;"><tr><th>Listenname</th><th>Listenadresse</th><th>Listenempfänger</th><th>Listenbesitzer</th><th>Listensicherheit</th><th>Optionen</th></tr>';
     while ($lists = $result->fetch()) {
         $abfrage2 = "SELECT `source_username`, `source_domain` FROM `aliases` WHERE `alias_id` LIKE :aliasid";
         $result2 = $dbh->prepare($abfrage2);
