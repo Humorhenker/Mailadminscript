@@ -19,16 +19,32 @@ $config = parse_ini_file('../private/config.ini');
 if (!isset($_SESSION['log']) OR $_SESSION['log'] != 1) {
     echo '<html>
     <head>
+    <title>Login</title>
     </head>
     <body>';
     if (isset($_GET['badlogin'])) {
         echo '<p>falsche Logindaten</p>';
     }
+    if (isset($_GET['pwnotequal'])) {
+        echo '<h3>Passwörter nicht gleich!</h3><a href="bin/forcedpwreset.php">Nochmal</a>';
+    }
+    if (isset($_GET['pwtoshort'])) {
+        echo '<h3>eingegebe Passwörter sind zu kurz!</h3><a href="bin/forcedpwreset.php">Nochmal</a>';
+    }
+    if (isset($_GET['pwmissmatch'])) {
+        echo '<h3>Das eingegebene aktulle Passwort stimmt nicht!</h3><a href="bin/forcedpwreset.php">Nochmal</a>';
+    }
+    if (isset($_GET['wrongsymbols'])) {
+        echo '<h3>eingegebe Passwörter enthalten unerlaubte Symbole!</h3><a href="bin/forcedpwreset.php">Nochmal</a>';
+    }
+    if (isset($_GET['newpwequal'])) {
+        echo '<h3>Das neue Passwort entspricht dem alten!</h3><a href="bin/forcedpwreset.php">Nochmal</a>';
+    }
     echo '<a href="webmail"><h2>Webmail</h2></a>
     <h2>Config-Login:</h2>
     <form method="POST" action="login.php">
-    <label>Nutzername<input name="username" type="text"/></label>
-    <label>Passwort<input name="password" type="password"/></label>
+    <label>Nutzername:<input name="username" type="text"/></label>
+    <label>Passwort:<input name="password" type="password"/></label>
     <input name="Submit" type="submit" value="Einloggen"/>
     </form>';
     if ($config['allowregistration']) {

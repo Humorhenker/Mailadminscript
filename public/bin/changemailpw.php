@@ -22,12 +22,13 @@ try {
     echo 'Connection failed';
 }
 session_start();
-if ($_SESSION['log'] == 1) {
+if ($_SESSION['log'] == 1 or $_SESSION['forcepwreset']) {
     if ($_POST['newmailpw'] == $_POST['newmailpwrep']) {
         $newmailpw = $_POST['newmailpw'];
         $oldmailpw = $_POST['oldmailpw'];
         if (strpos($newmailpw, "'") !== false) {
-            header("Location: ../settings.php?wrongsymbols=1");
+            if ($_SESSION['forcepwreset']) header("Location: ../index.php?wrongsymbols=1");
+            else header("Location: settings.php?wrongsymbols=1");
             exit;
         }
         $mailusername = $_SESSION['username'];
@@ -37,6 +38,10 @@ if ($_SESSION['log'] == 1) {
         $sth->execute(array(':newmailusername' => $mailusername, ':newmaildomain' => $maildomain));
         $result= $sth->fetchAll();
         $oldpwhashed = $result[0]['password'];
+        if ($_SESSION['forcepwreset'] and password_verify($newmailpw, $oldpwhashed)) {
+            header("Location: ../index.php?newpwequal=1");
+            exit;
+        }
         if (password_verify($oldmailpw, $oldpwhashed)) {
             if (strlen($newmailpw) >= 8) {
                 $newmailpwhashed = password_hash($newmailpw, PASSWORD_ARGON2I, ['memory_cost' => 32768, 'time_cost' => 4]);
@@ -51,23 +56,32 @@ if ($_SESSION['log'] == 1) {
                 //        exec('sudo -u vmail /usr/bin/doveadm mailbox cryptokey password -o stats_writer_socket_path= -u ' . escapeshellarg($mailusername) . ' -n ' . escapeshellarg($newmailpw) . ' -o' . escapeshellcmd($oldmailpw));
                 //    }
                 //}
+                if ($_SESSION['forcepwreset']) {
+                    $_SESSION['forcepwreset'] = 0;
+                    $_SESSION['log'] = 1;
+                    $eintrag = "UPDATE `accounts` SET `forcepwreset` = '0', `enabled` = '1' WHERE `username` LIKE :mailusername AND `domain` LIKE :maildomain";
+                    $sth = $dbh->prepare($eintrag);
+                    $sth->execute(array(':mailusername' => $mailusername, ':maildomain' => $maildomain));
+                }
                 header("Location: ../settings.php?success=1");
                 exit;
             }
             else {
-                header("Location: ../settings.php?pwtoshort=1");
+                if ($_SESSION['forcepwreset']) header("Location: ../index.php?pwtoshort=1");
+                else header("Location: ../settings.php?pwtoshort=1");
                 exit;
             }
         }
         else {
-            header( "Location: ../settings.php?pwmissmatch=1");
+            if ($_SESSION['forcepwreset']) header("Location: ../index.php?pwmissmatch=1");
+            else header( "Location: ../settings.php?pwmissmatch=1");
             exit;
         }
     }
     else {
-        header("Location: ../settings.php?pwnotequal=1");
+        if ($_SESSION['forcepwreset']) header("Location: ../index.php?pwnotequal=1");
+        else header("Location: ../settings.php?pwnotequal=1");
         exit;
     }
 }
-header("Location: index.php");
-?>
+header("Location: ../index.php");
