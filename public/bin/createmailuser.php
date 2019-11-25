@@ -21,7 +21,7 @@ try {
     //echo 'Connection failled: '. $e->getMessage(); // Errormessage kann Sicherheitsrelevantes enthalen
     echo 'Connection failed';
 }
-function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmailpwrep, $admin) {
+function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmailpwrep, $newmailforcepwreset, $admin) {
     global $dbh;
     global $config;
     $abfrage = "SELECT domain FROM `domains` WHERE `id` LIKE :newmaildomainid";
@@ -84,9 +84,9 @@ function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmail
                 //     $eintrag = "UPDATE `mailserver`.`virtual_users` SET `active`='0' WHERE `email` LIKE :newmailusernamefull";
                 // }
                 //else {
-                    $eintrag = "INSERT INTO `accounts` (`username`, `domain`, `password`, `quota`, `enabled`, `forcepwreset`, `sendonly`, `admin`) VALUES (:newmailusername, :newmaildomain, :newmailpwhashed, '2048', '1', '0', '0', '0')"; // Maildaten in MailServer DB eintragen
+                    $eintrag = "INSERT INTO `accounts` (`username`, `domain`, `password`, `quota`, `enabled`, `forcepwreset`, `sendonly`, `admin`) VALUES (:newmailusername, :newmaildomain, :newmailpwhashed, '2048', '1', :forcepwreset, '0', '0')"; // Maildaten in MailServer DB eintragen
                     $sth = $dbh->prepare($eintrag);
-                    $sth->execute(array(':newmailusername' => $newmailusername, ':newmaildomain' => $newmaildomain, ':newmailpwhashed' => $newmailpwhashed));
+                    $sth->execute(array(':newmailusername' => $newmailusername, ':newmaildomain' => $newmaildomain, ':newmailpwhashed' => $newmailpwhashed, ':forcepwreset' =>  $newmailforcepwreset));
                     //$maildirpath = $config['mailfolderpath'] . $newmailusername;
                 //    umask(0);
                 //    mkdir($maildirpath, 0770);
@@ -139,13 +139,13 @@ function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmail
 session_start();
 if ($_SESSION['log'] == 1 AND $_SESSION['admin'] == 1) {
     //print_r($_POST);
-    createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], 1);
+    createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], $_POST['forcepwreset'], 1);
     header("Location: ../admin.php");
     exit;
 }
 if ($config['allowregistration']) {
     if ($_POST['captchacode'] == $_SESSION['captchacode']) {
-        createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], 0);
+        createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], $_POST['forcepwreset'], 0);
     }
     elseif ($_POST['captchacode'] != $_SESSION['captchacode']) {
         header("Location: createmailpre.php?wrongcaptchacode=1");

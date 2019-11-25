@@ -28,7 +28,7 @@ if ($_SESSION['log'] == 1 or $_SESSION['forcepwreset']) {
         $oldmailpw = $_POST['oldmailpw'];
         if (strpos($newmailpw, "'") !== false) {
             if ($_SESSION['forcepwreset']) header("Location: ../index.php?wrongsymbols=1");
-            else header("Location: settings.php?wrongsymbols=1");
+            else header("Location: ../settings.php?wrongsymbols=1");
             exit;
         }
         $mailusername = $_SESSION['username'];

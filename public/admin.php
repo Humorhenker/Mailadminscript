@@ -70,6 +70,7 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
 echo '</select> (benutze nicht ' .  "'" . ')</label>
 <label>Neues Passwort<input type="password" name="newmailpw"/>(min. 8 Zeichen, benutze nicht ' .  "'" . ')</label>
 <label>Neues Passwort wiederholen<input type="password" name="newmailpwrep"/></label>
+<label>Passwortänderung erzwingen:<input type="checkbox" name="forcepwreset"/></label>
 <input type="submit" name="submit" value="Hinzufügen"/>
 </form>
 <h3>Passwort einer Email-Adresse ändern:</h3>
