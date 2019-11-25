@@ -22,23 +22,29 @@ try {
     echo 'Connection failed';
 }
 session_start();
-if ($_SESSION['log'] == 1) {
-    if (!$_SESSION['admin']) {
-        $abfrage = "SELECT `alias_id` FROM `alias_owner` WHERE `owner_username` LIKE :owner_username AND `owner_domain` LIKE :owner_domain AND alias_id LIKE :editlistid";
-        $result = $dbh->prepare($abfrage);
-        $result->execute(array(':owner_username' => $_SESSION['username'], ':owner_domain' => $_SESSION['domain'], ':editlistid' => $_GET['editlistid']));
-        if ($result->rowCount() <= 0) {
-            header("Location: maillistsettings.php");
+if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
+    if (strpos($_POST['newmailpw'] , "'") !== false) {
+        header("Location: ../admin.php?wrongsymbols=1");
+        exit;
+    }
+    if ($_POST['newmailpw'] == $_POST['newmailpwrep']) {
+        if (strlen($_POST['newmailpw'] ) >= 8) {
+            $newmailpwhashed = password_hash($_POST['newmailpw'] , PASSWORD_ARGON2I, ['memory_cost' => 32768, 'time_cost' => 4]);
+            $eintrag = "UPDATE `accounts` SET `password` = :newmailpwhashed WHERE `id` LIKE :id";
+            $sth = $dbh->prepare($eintrag);
+            $sth->execute(array(':newmailpwhashed' => $newmailpwhashed, ':id' => $_POST['changemailid']));
+            header("Location: ../settings.php?success=1");
+            exit;
+        }
+        else {
+            header("Location: ../admin.php?pwtoshort=1");
             exit;
         }
     }
-    $eintrag = "DELETE FROM `aliases` WHERE `alias_id` LIKE :aliasid;  DELETE FROM `alias_owner` WHERE `alias_id` LIKE :aliasid; DELETE FROM `alias_details` WHERE `id` LIKE :aliasid";
-    $sth = $dbh->prepare($eintrag);
-    $sth->execute(array(':aliasid' => $_GET['dellistid']));
-    header("Location: maillistsettings.php");
-    exit;
-} else {
-    header("Location: ../index.php");
-    exit;
+    else {
+        header("Location: ../admin.php?pwnotequal=1");
+        exit;
+    }
 }
+header("Location: index.php");
 ?>

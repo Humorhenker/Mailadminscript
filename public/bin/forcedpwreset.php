@@ -22,23 +22,18 @@ try {
     echo 'Connection failed';
 }
 session_start();
-if ($_SESSION['log'] == 1) {
-    if (!$_SESSION['admin']) {
-        $abfrage = "SELECT `alias_id` FROM `alias_owner` WHERE `owner_username` LIKE :owner_username AND `owner_domain` LIKE :owner_domain AND alias_id LIKE :editlistid";
-        $result = $dbh->prepare($abfrage);
-        $result->execute(array(':owner_username' => $_SESSION['username'], ':owner_domain' => $_SESSION['domain'], ':editlistid' => $_GET['editlistid']));
-        if ($result->rowCount() <= 0) {
-            header("Location: maillistsettings.php");
-            exit;
-        }
-    }
-    $eintrag = "DELETE FROM `aliases` WHERE `alias_id` LIKE :aliasid;  DELETE FROM `alias_owner` WHERE `alias_id` LIKE :aliasid; DELETE FROM `alias_details` WHERE `id` LIKE :aliasid";
-    $sth = $dbh->prepare($eintrag);
-    $sth->execute(array(':aliasid' => $_GET['dellistid']));
-    header("Location: maillistsettings.php");
-    exit;
-} else {
-    header("Location: ../index.php");
+if ($_SESSION['log']) {
+    header("Location: ../settings.php");
     exit;
 }
+if ($_SESSION['forcepwreset']) {
+    echo '<h3>Du musst erstmal dein Passwort ändern:</h3>
+    <form name="changemailpw" method=POST action="changemailpw.php">
+    <label>Altes Passwort: <input type="password" name="oldmailpw"/></label>
+    <label>Neues Passwort: <input type="password" name="newmailpw"/>(min. 8 Zeichen, benutze nicht ' .  "'" . ')</label>
+    <label>Neue Passwort wiederholen: <input type="password" name="newmailpwrep"/></label>
+    <input type="submit" value="Abschicken"/></form>';
+    echo '<br><a href="../logout.php"><button>Logout</button></a>'; 
+}
+else header("Location: ../index.php");
 ?>

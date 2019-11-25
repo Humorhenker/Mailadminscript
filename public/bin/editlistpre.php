@@ -22,40 +22,53 @@ try {
     echo 'Connection failed';
 }
 session_start();
-if ($_SESSION['log'] == 1 && $_SESSION['admin']) {
+if ($_SESSION['log']) {
+    if (!$_SESSION['admin']) {
+        $abfrage = "SELECT `alias_id` FROM `alias_owner` WHERE `owner_username` LIKE :owner_username AND `owner_domain` LIKE :owner_domain AND alias_id LIKE :editlistid";
+        $result = $dbh->prepare($abfrage);
+        $result->execute(array(':owner_username' => $_SESSION['username'], ':owner_domain' => $_SESSION['domain'], ':editlistid' => $_GET['editlistid']));
+        if ($result->rowCount() <= 0) {
+            header("Location: maillistsettings.php");
+            exit;
+        }
+    }
     echo '<html>
     <head>
     <title>Mailliste editieren</title>
     </head>
     <body>
     <a href="maillistsettings.php"><h3>Zurück zur Maillistoberfläche (Editieren abbrechen)</h3></a><br>';
-    $abfrage = "SELECT `source`, `destination`, `owner`, `private`, `name` FROM `virtual_aliases` WHERE `id` LIKE :editlistid";
+    $abfrage = "SELECT `name`, `owners`, `security` FROM `alias_details` WHERE `id` LIKE :editlistid";
     $result = $dbh->prepare($abfrage);
-    $result->execute(array('editlistid' => $_GET['editlistid']));
+    $result->execute(array(':editlistid' => $_GET['editlistid']));
     while ($lists = $result->fetch()) {
+        $abfrage2 = "SELECT `source_username`, `source_domain` FROM `aliases` WHERE `alias_id` LIKE :aliasid";
+        $result2 = $dbh->prepare($abfrage2);
+        $result2->execute(array(':aliasid' => $_GET['editlistid']));
+        $listdetails = $result2->fetch();
         echo'
         <form name="editlist" method=POST action="editlist.php">
         <label>Listenname:<input name="newlistname" type="text" placeholder="Listenname" value="' . $lists['name'] . '"/></label>
-        <label>Listenadresse:<input name="newlistsource" type="text" placeholder="Listenadresse" value="' . $lists['source'] . '"/></label>
-        <label>Listenbesitzer:<select name="newlistownerid">';
-        $abfrage = "SELECT `id`, `email` FROM `virtual_users`";
-        $result = $dbh->query($abfrage);
-        while ($emails = $result->fetch()) {
-            echo '<option value="' . $emails['id'] . '" ';
-            if ($emails['id'] == $lists['owner']) echo ' selected';
-            echo '>' . $emails['email'] . '</option>';
+        <label>Listenadresse:<input name="newlistsource" type="text" placeholder="Listenadresse" value="' . $listdetails['source_username'] . '@' . $listdetails['source_domain'] . '"/></label>
+        <label>Listenbesitzer:<textarea rows="1" cols="50" name="newlistowners">' . $lists['owners'] . '</textarea></label><br>
+        <label>Listenempfänger (durch Leerzeichen getrennt):<br><textarea rows="4" cols="50" name="newlistdestinations">';
+        $abfrage3 = "SELECT `destination_username`, `destination_domain` FROM `aliases` WHERE `alias_id` LIKE :aliasid";
+        $result3 = $dbh->prepare($abfrage3);
+        $result3->execute(array(':aliasid' => $_GET['editlistid']));
+        $listdestinations = "";
+        while ($listdestination = $result3->fetch()) {
+            $listdestinations = $listdestinations . $listdestination['destination_username'] . '@' . $listdestination['destination_domain'] . ' ';
         }
-        echo '</select></label><br>
-        <label>Listenempfänger (durch Leerzeichen getrennt):<br><textarea rows="4" cols="50" name="newlistdestination">' . $lists['destination'] . '</textarea></label>
-        <label>Listensicherheitseinstellungen:<select name="newlistprivate">
+        echo substr($listdestinations, 0, -1) . '</textarea></label>
+        <label>Listensicherheitseinstellungen:<select name="newlistsecurity">
         <option value="0"';
-        if ($lists['private'] == 0) echo ' selected';
+        if ($lists['security'] == 0) echo ' selected';
         echo '>0 (Jeder kann Mails an die Liste schicken)</option>
         <option value="1"';
-        if ($lists['private'] == 1) echo ' selected';
+        if ($lists['security'] == 1) echo ' selected';
         echo '>1 (Mitglieder der Liste können Mails an die Liste schicken)</option>
         <option value="2"';
-        if ($lists['private'] == 2) echo ' selected';
+        if ($lists['security'] == 2) echo ' selected';
         echo '>2 (Der Besitzer der Liste kann Mails an die Liste schicken)</option>
         </select></label><br>
         <input type="hidden" name="editlistid" value="' . $_GET['editlistid'] . '"/>
@@ -63,5 +76,8 @@ if ($_SESSION['log'] == 1 && $_SESSION['admin']) {
         </body>
         </html>';
     }
+} else {
+    header("Location: ../index.php");
+    exit;
 }
 ?>

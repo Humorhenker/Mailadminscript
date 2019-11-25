@@ -22,11 +22,43 @@ try {
     echo 'Connection failed';
 }
 session_start();
-if ($_SESSION['log'] == 1 && $_SESSION['admin']) {
-    $eintrag = "UPDATE `virtual_aliases` SET `source` = :newsource, `destination` = :newdestination, `owner` = :newowner, `private` = :newprivate, `name` = :newname WHERE `id` LIKE :editlistid";
+if ($_SESSION['log'] == 1) {
+    if (!$_SESSION['admin']) {
+        $abfrage = "SELECT `alias_id` FROM `alias_owner` WHERE `owner_username` LIKE :owner_username AND `owner_domain` LIKE :owner_domain AND alias_id LIKE :editlistid";
+        $result = $dbh->prepare($abfrage);
+        $result->execute(array(':owner_username' => $_SESSION['username'], ':owner_domain' => $_SESSION['domain'], ':editlistid' => $_POST['editlistid']));
+        if ($result->rowCount() <= 0) {
+            header("Location: maillistsettings.php");
+            exit;
+        }
+    }
+    $newlistowner = explode('@', $_POST['newlistowner']);
+    $eintrag = "UPDATE `alias_details` SET `name` = :newlistname, `owners` = :owners, `destinations` = :destinations, `security` = :security WHERE `id` LIKE :editlistid"; // Aliasdaten in MailServer DB eintragen
     $sth = $dbh->prepare($eintrag);
-    $sth->execute(array('newsource' => $_POST['newlistsource'], 'newdestination' => $_POST['newlistdestination'], 'newowner' => $_POST['newlistownerid'], 'newprivate' => $_POST['newlistprivate'], 'newname' => $_POST['newlistname'], 'editlistid' => $_POST['editlistid']));
+    $sth->execute(array(':newlistname' => $_POST['newlistname'], ':owners' => $_POST['newlistowners'], ':destinations' => $_POST['newlistdestinations'], ':security' => $_POST['newlistsecurity'], ':editlistid' => $_POST['editlistid']));
+    $newlistsource = explode('@', $_POST['newlistsource']);
+    $eintrag = "DELETE FROM `alias_owner` WHERE `alias_id` LIKE :aliasid";
+    $sth = $dbh->prepare($eintrag);
+    $sth->execute(array(':aliasid' => $_POST['editlistid']));
+    foreach (explode(' ', $_POST['newlistowners']) as $maillistowner) {
+        $maillistownerex = explode('@', $maillistowner);
+        $eintrag = "INSERT INTO `alias_owner` (`alias_id`, `owner_username`, `owner_domain`) VALUES (:aliasid, :owner_username, :owner_domain)"; // Aliasdaten in MailServer DB eintragen
+        $sth = $dbh->prepare($eintrag);
+        $sth->execute(array(':aliasid' => $_POST['editlistid'], ':owner_username' => $maillistownerex[0], ':owner_domain' => $maillistownerex[1]));
+    }
+    $eintrag = "DELETE FROM `aliases` WHERE `alias_id` LIKE :aliasid";
+    $sth = $dbh->prepare($eintrag);
+    $sth->execute(array(':aliasid' => $_POST['editlistid']));
+    foreach (explode(' ', $_POST['newlistdestinations']) as $maillistdestination) {
+        $maillistdestinationex = explode('@', $maillistdestination);
+        $eintrag = "INSERT INTO `aliases` (`alias_id`, `source_username`, `source_domain`, `destination_username`, `destination_domain`) VALUES (:aliasid, :source_username, :source_domain, :destination_username, :destination_domain)"; // Aliasdaten in MailServer DB eintragen
+        $sth = $dbh->prepare($eintrag);
+        $sth->execute(array(':aliasid' => $_POST['editlistid'], ':source_username' => $newlistsource[0], ':source_domain' => $newlistsource[1], ':destination_username' => $maillistdestinationex[0], ':destination_domain' => $maillistdestinationex[1]));
+    }
     header("Location: maillistsettings.php");
+    exit;
+} else {
+    header("Location: ../index.php");
     exit;
 }
 ?>
