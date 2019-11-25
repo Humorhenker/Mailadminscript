@@ -39,7 +39,7 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
     echo '<h3>Mailadresse aktivieren:</h3>
 <form name="activatemail" method=POST action="bin/activatemail.php">
 <label>Activate Mail:<select name="mailuserID">';
-    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` WHERE `enabled` LIKE 0";
+    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` WHERE `enabled` LIKE 0 ORDER by `domain`, `username` ASC";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
         echo '<option value="' . htmlentities($emails['id']) . '">' . htmlentities($emails['username']) . '@' . htmlentities($emails['domain']) . '</option>';
@@ -51,7 +51,7 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
 <h3>Mailadresse deaktivieren:</h3>
 <form name="deactivatemail" method=POST action="bin/deactivatemail.php">
 <label>Deactivate Mail:<select name="mailuserID">';
-    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` WHERE `enabled` LIKE 1";
+    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` WHERE `enabled` LIKE 1 ORDER by `domain`, `username` ASC";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
         echo '<option value="' . htmlentities($emails['id']) . '">' . htmlentities($emails['username']) . '@' . htmlentities($emails['domain']) . '</option>';
@@ -62,7 +62,7 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
 <h3>Emailadresse hinzufügen:</h3>
 <form name="createmailuser" method=POST action="bin/createmailuser.php">
 <label>Neue email<input type="text" name="newmailusername"/>@<select name="newmaildomainid">';
-    $abfrage = "SELECT `id`, `domain` FROM `domains`";
+    $abfrage = "SELECT `id`, `domain` FROM `domains` ORDER by `preselectorder` DESC, `domain` ASC";
     $result = $dbh->query($abfrage);
     while ($domains = $result->fetch()) {
         echo '<option value="' . htmlentities($domains['id']) . '">' . htmlentities($domains['domain']) . '</option>';
@@ -70,13 +70,13 @@ if ($_SESSION['log'] == 1 and $_SESSION['admin'] == 1) {
 echo '</select> (benutze nicht ' .  "'" . ')</label>
 <label>Neues Passwort<input type="password" name="newmailpw"/>(min. 8 Zeichen, benutze nicht ' .  "'" . ')</label>
 <label>Neues Passwort wiederholen<input type="password" name="newmailpwrep"/></label>
-<label>Passwortänderung erzwingen:<input type="checkbox" name="forcepwreset"/></label>
+<label>Passwortänderung erzwingen:<input type="checkbox" name="forcepwreset" value="1"/></label>
 <input type="submit" name="submit" value="Hinzufügen"/>
 </form>
 <h3>Passwort einer Email-Adresse ändern:</h3>
 <form name="changemailpwadm" method=POST action="bin/changemailpwadm.php">
 <label>Zu ändernde Mail:<select name="changemailid">';
-    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts`";
+    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` ORDER by `domain`, `username` ASC";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
         echo '<option value="' . htmlentities($emails['id']) . '">' . htmlentities($emails['username']) . '@' . $emails['domain'] . '</option>';
@@ -88,7 +88,7 @@ echo '</select> (benutze nicht ' .  "'" . ')</label>
 <h3>Emailadresse entfernen:</h3>
 <form name="deletemail" method=POST action="bin/deletemail.php">
 <label>Delete Mail:<select name="mailuserID">';
-    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts`";
+    $abfrage = "SELECT `id`, `username`, `domain` FROM `accounts` ORDER by `domain`, `username` ASC";
     $result = $dbh->query($abfrage);
     while ($emails = $result->fetch()) {
         echo '<option value="' . htmlentities($emails['id']) . '">' . htmlentities($emails['username']) . '@' . $emails['domain'] . '</option>';
@@ -97,7 +97,13 @@ echo '</select> (benutze nicht ' .  "'" . ')</label>
 <input type="submit" name="submit" value="ENTFERNEN"/>
 </form>
 <a href="bin/maillistsettings.php"><h3>Maillisten Einstellungen</h3></a>
-</body>
+<table><caption>Emailadressen:</caption><tr><th>Email-Adresse</th><th>quota</th><th>enabled</th><th>sendonly</th><th>forcepwreset</th><th>admin</th></tr>';
+$abfrage = "SELECT `id`, `username`, `domain`, `quota`, `enabled`, `sendonly`, `forcepwreset`, `admin` FROM `accounts` ORDER by `domain`, `username` ASC";
+$result = $dbh->query($abfrage);
+while ($emails = $result->fetch()) {
+    echo '<tr><td>' . htmlentities($emails['username']) . '@' . htmlentities($emails['domain']) . '</td><td>' . htmlentities($emails['quota']) . '</td><td>' . htmlentities($emails['enabled']) . '</td><td>' . htmlentities($emails['sendonly']) . '</td><td>' . htmlentities($emails['forcepwreset']) . '</td><td>' . htmlentities($emails['admin']) . '</td></tr>';
+}
+echo '</table></body>
 </html>';
     exit;
 }

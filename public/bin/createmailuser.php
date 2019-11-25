@@ -87,16 +87,16 @@ function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmail
                     $eintrag = "INSERT INTO `accounts` (`username`, `domain`, `password`, `quota`, `enabled`, `forcepwreset`, `sendonly`, `admin`) VALUES (:newmailusername, :newmaildomain, :newmailpwhashed, '2048', '1', :forcepwreset, '0', '0')"; // Maildaten in MailServer DB eintragen
                     $sth = $dbh->prepare($eintrag);
                     $sth->execute(array(':newmailusername' => $newmailusername, ':newmaildomain' => $newmaildomain, ':newmailpwhashed' => $newmailpwhashed, ':forcepwreset' =>  $newmailforcepwreset));
-                    //$maildirpath = $config['mailfolderpath'] . $newmailusername;
+                //$maildirpath = $config['mailfolderpath'] . $newmailusername;
                 //    umask(0);
                 //    mkdir($maildirpath, 0770);
                 //}
                 //$sth = $dbh->prepare($eintrag);
                 //$sth->execute(array(':newmailusernamefull' => $newmailusernamefull));
-                $adminmailadress = $config['adminadress'];
-                $adresse = $config['domain'] . '/admin.php';
-                // eine Mail an den Admin verschicken, damit er die Mail freischalten kann
                 if ($config['sendactivationinfo']) {
+                    $adminmailadress = $config['adminadress'];
+                    $adresse = $config['domain'] . '/admin.php';
+                    // eine Mail an den Admin verschicken, damit er die Mail freischalten kann
                     mail($adminmailadress, "Neue Mailadresse erstellt", "Eine neue Mailadresse wurde erstellt und muss freigeschaltet werden. \n \n" . htmlspecialchars($newmailusernamefull) . "\n " . $adresse, "From: mailservice");
                 }
                 if ($admin == 1) {
