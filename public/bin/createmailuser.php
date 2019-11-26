@@ -139,13 +139,15 @@ function createmailuser($newmailusername, $newmaildomainid, $newmailpw, $newmail
 session_start();
 if ($_SESSION['log'] == 1 AND $_SESSION['admin'] == 1) {
     //print_r($_POST);
-    createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], $_POST['forcepwreset'], 1);
+    if (!isset($_POST['forcepwreset'])) $newmailforcepwreset = 0;
+    else $newmailforcepwreset = $_POST['forcepwreset'];
+    createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], $newmailforcepwreset, 1);
     header("Location: ../admin.php");
     exit;
 }
 if ($config['allowregistration']) {
     if ($_POST['captchacode'] == $_SESSION['captchacode']) {
-        createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], $_POST['forcepwreset'], 0);
+        createmailuser($_POST['newmailusername'], $_POST['newmaildomainid'], $_POST['newmailpw'], $_POST['newmailpwrep'], 0, 0);
     }
     elseif ($_POST['captchacode'] != $_SESSION['captchacode']) {
         header("Location: createmailpre.php?wrongcaptchacode=1");
