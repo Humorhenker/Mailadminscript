@@ -64,8 +64,9 @@ if ($_SESSION['log'] == 1) {
     <h3>Diese Mailadresse löschen:</h3>
     <form name="deletemail" method=POST action="bin/deletemail.php">
     <input type="submit" value="LÖSCHEN"/>
-    </form>';
-    echo '</body>
+    </form><p>';
+    echo $config['connectionsettingsadvicetext'];
+    echo '</p></body>
     </html>';
     exit;
 }

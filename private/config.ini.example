@@ -13,6 +13,7 @@ adminadress =
 deletedelrequestdaydiff = 
 sendactivationinfo = 
 prohibadminmailcreation = 
+connectionsettingsadvicetext = ""
 
 [mailserver]
 mailsmtpserver=""
