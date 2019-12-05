@@ -32,10 +32,12 @@ if ($_SESSION['log'] == 1) {
             exit;
         }
     }
-    $newlistowner = explode('@', $_POST['newlistowner']);
-    $eintrag = "UPDATE `alias_details` SET `name` = :newlistname, `owners` = :owners, `destinations` = :destinations, `security` = :security WHERE `id` LIKE :editlistid"; // Aliasdaten in MailServer DB eintragen
+    $newlistowner = explode('@', $_POST['newlistowners']);
+    if (!isset($_POST['newlistislist'])) $islist = 0; // wenn die checkbox nicht ausgewählt wurde ist die Post Variable nicht gesetzt, dass stört die Datenbank, deshalb wird Null eingertragen
+    else $islist = $_POST['newlistislist'];
+    $eintrag = "UPDATE `alias_details` SET `name` = :newlistname, `owners` = :owners, `destinations` = :destinations, `security` = :security, `islist` = :islist WHERE `id` LIKE :editlistid"; // Aliasdaten in MailServer DB eintragen
     $sth = $dbh->prepare($eintrag);
-    $sth->execute(array(':newlistname' => $_POST['newlistname'], ':owners' => $_POST['newlistowners'], ':destinations' => $_POST['newlistdestinations'], ':security' => $_POST['newlistsecurity'], ':editlistid' => $_POST['editlistid']));
+    $sth->execute(array(':newlistname' => $_POST['newlistname'], ':owners' => $_POST['newlistowners'], ':destinations' => $_POST['newlistdestinations'], ':security' => $_POST['newlistsecurity'], ':islist' => $islist, ':editlistid' => $_POST['editlistid']));
     $newlistsource = explode('@', $_POST['newlistsource']);
     $eintrag = "DELETE FROM `alias_owner` WHERE `alias_id` LIKE :aliasid";
     $sth = $dbh->prepare($eintrag);

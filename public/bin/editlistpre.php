@@ -38,7 +38,7 @@ if ($_SESSION['log']) {
     </head>
     <body>
     <a href="maillistsettings.php"><h3>Zurück zur Maillistoberfläche (Editieren abbrechen)</h3></a><br>';
-    $abfrage = "SELECT `name`, `owners`, `security` FROM `alias_details` WHERE `id` LIKE :editlistid";
+    $abfrage = "SELECT `name`, `owners`, `security`, `islist` FROM `alias_details` WHERE `id` LIKE :editlistid";
     $result = $dbh->prepare($abfrage);
     $result->execute(array(':editlistid' => $_GET['editlistid']));
     while ($lists = $result->fetch()) {
@@ -71,6 +71,9 @@ if ($_SESSION['log']) {
         if ($lists['security'] == 2) echo ' selected';
         echo '>2 (Der Besitzer der Liste kann Mails an die Liste schicken)</option>
         </select></label><br>
+        <label>Ist eine Maillingliste, keine einfache Umleitung<input type="checkbox" name="newlistislist" value="1"';
+        if ($lists['islist'] == 1) echo ' checked';
+        echo '/></label>
         <input type="hidden" name="editlistid" value="' . $_GET['editlistid'] . '"/>
         <input type="submit" name="submit" value="Editieren"/>
         </body>

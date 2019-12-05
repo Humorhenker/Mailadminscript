@@ -55,12 +55,13 @@ if ($_SESSION['log'] == 1) {
         }
         echo '</select></label>
         <label>Listenbesitzer:<textarea rows="1" cols="50" name="newlistowners"></textarea></label><br>
-        <label>Listenempfänger (durch Leerzeichen getrennt):<br><textarea rows="4" cols="50" name="newlistdestinations"></textarea></label>
+        <label>Listenempfänger (durch Leerzeichen getrennt):<br><textarea rows="4" cols="50" name="newlistdestinations"></textarea></label><br>
         <label>Listensicherheitseinstellungen:<select name="newlistsecurity">
         <option value="0">0 (Jeder kann Mails an die Liste schicken)</option>
         <option value="1">1 (Mitglieder und Besitzer der Liste können Mails an die Liste schicken)</option>
         <option value="2">2 (Nur Besitzer der Liste können Mails an die Liste schicken)</option>
         </select></label><br>
+        <label>Ist eine Maillingliste, keine einfache Umleitung:<input type="checkbox" name="newlistislist" value="1" checked/></label><br>
         <input type="submit" name="submit" value="Hinzufügen"/></form>
         <br><h3>Bestehende Listen:</h3>';
     }
@@ -68,15 +69,15 @@ if ($_SESSION['log'] == 1) {
         echo '<a href="../settings.php"><h3>Zurück</h3></a><br><h3>Meine bestehenden Listen:</h3>';
     }
     if ($_SESSION['admin']) {
-        $abfrage = "SELECT `id`, `name`, `owners`, `destinations`, `security` FROM `alias_details`";
+        $abfrage = "SELECT `id`, `name`, `owners`, `destinations`, `security`, `islist` FROM `alias_details`";
         $result = $dbh->query($abfrage);
     }
     else {
-        $abfrage = "SELECT `id`, `name`, `owners`, `destinations`, `security` FROM `alias_details` WHERE `id` REGEXP :aliasid";
+        $abfrage = "SELECT `id`, `name`, `owners`, `destinations`, `security`, `islist` FROM `alias_details` WHERE `id` REGEXP :aliasid";
         $result = $dbh->prepare($abfrage);
         $result->execute(array(':aliasid' => substr($aliasids, 0, -1)));
     }
-    echo '<table border="1" style="text-align: center; vertical-align: middle;"><tr><th>Listenname</th><th>Listenadresse</th><th>Listenempfänger</th><th>Listenbesitzer</th><th>Listensicherheit</th><th>Optionen</th></tr>';
+    echo '<table border="1" style="text-align: center; vertical-align: middle;"><tr><th>Listenname</th><th>Listenadresse</th><th>Listenempfänger</th><th>Listenbesitzer</th><th>Listensicherheit</th><th>Ist Maillingliste</th></ht><th>Optionen</th></tr>';
     while ($lists = $result->fetch()) {
         $abfrage2 = "SELECT `source_username`, `source_domain` FROM `aliases` WHERE `alias_id` LIKE :aliasid";
         $result2 = $dbh->prepare($abfrage2);
@@ -90,7 +91,7 @@ if ($_SESSION['log'] == 1) {
         foreach (explode(' ', $lists['owners']) as $owner) {
             echo $owner . '<br>';
         }
-        echo '</td><td>' . $lists['security'] . '</td><td><a href="dellist.php?dellistid=' . $lists['id'] . '">Löschen</a><br><a href="editlistpre.php?editlistid=' . $lists['id'] . '">Editieren</a></td></tr>';
+        echo '</td><td>' . $lists['security'] . '</td><td>' . $lists['islist'] . '</td><td><a href="dellist.php?dellistid=' . $lists['id'] . '">Löschen</a><br><a href="editlistpre.php?editlistid=' . $lists['id'] . '">Editieren</a></td></tr>';
     }
     echo '</table>';
     echo '</body>

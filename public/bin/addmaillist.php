@@ -23,9 +23,11 @@ try {
 }
 session_start();
 if ($_SESSION['log'] == 1 && $_SESSION['admin']) {
-    $eintrag = "INSERT INTO `alias_details` (`name`, `owners`, `destinations`, `security`) VALUES (:newlistname, :owners, :destinations, :security)"; // Aliasdaten in MailServer DB eintragen
+    if (!isset($_POST['newlistislist'])) $islist = 0; // wenn die checkbox nicht ausgewählt wurde ist die Post Variable nicht gesetzt, dass stört die Datenbank, deshalb wird Null eingertragen
+    else $islist = $_POST['newlistislist'];
+    $eintrag = "INSERT INTO `alias_details` (`name`, `owners`, `destinations`, `security`, `islist`) VALUES (:newlistname, :owners, :destinations, :security, :islist)"; // Aliasdaten in MailServer DB eintragen
     $sth = $dbh->prepare($eintrag);
-    $sth->execute(array(':newlistname' => $_POST['newlistname'], ':owners' => $_POST['newlistowners'], ':destinations' => $_POST['newlistdestinations'], ':security' => $_POST['newlistsecurity']));
+    $sth->execute(array(':newlistname' => $_POST['newlistname'], ':owners' => $_POST['newlistowners'], ':destinations' => $_POST['newlistdestinations'], ':security' => $_POST['newlistsecurity'], ':islist' => $islist));
     $newlistid = $dbh->lastInsertID();
     foreach (explode(' ', $_POST['newlistowners']) as $maillistowner) {
         $maillistownerex = explode('@', $maillistowner);
