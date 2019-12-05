@@ -66,6 +66,7 @@ if ($_SESSION['log'] == 1) {
     <input type="submit" value="LÖSCHEN"/>
     </form><p>';
     echo $config['connectionsettingsadvicetext'];
+    echo $config['supportinfotext'];
     echo '</p></body>
     </html>';
     exit;
