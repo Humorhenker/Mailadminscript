@@ -48,9 +48,11 @@ if ($_SESSION['log']) {
         $listdetails = $result2->fetch();
         echo'
         <form name="editlist" method=POST action="editlist.php">
-        <label>Listenname:<input name="newlistname" type="text" placeholder="Listenname" value="' . $lists['name'] . '"/></label>
-        <label>Listenadresse:<input name="newlistsource" type="text" placeholder="Listenadresse" value="' . $listdetails['source_username'] . '@' . $listdetails['source_domain'] . '"/></label>
-        <label>Listenbesitzer:<textarea rows="1" cols="50" name="newlistowners">' . $lists['owners'] . '</textarea></label><br>
+        <label>Listenname: <input name="newlistname" type="text" placeholder="Listenname" value="' . $lists['name'] . '"/></label>
+        <label>Listenadresse: ';
+        if ($_SESSION['admin']) echo '<input name="newlistsource" type="text" placeholder="Listenadresse" value="' . $listdetails['source_username'] . '@' . $listdetails['source_domain'] . '"/></label>';
+        else echo $listdetails['source_username'] . '@' . $listdetails['source_domain'] . '</label> ';
+        echo '<label>Listenbesitzer: <textarea rows="1" cols="50" name="newlistowners">' . $lists['owners'] . '</textarea></label><br>
         <label>Listenempfänger (durch Leerzeichen getrennt):<br><textarea rows="4" cols="50" name="newlistdestinations">';
         $abfrage3 = "SELECT `destination_username`, `destination_domain` FROM `aliases` WHERE `alias_id` LIKE :aliasid";
         $result3 = $dbh->prepare($abfrage3);
