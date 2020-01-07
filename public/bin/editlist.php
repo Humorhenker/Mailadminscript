@@ -38,7 +38,6 @@ if ($_SESSION['log'] == 1) {
     $eintrag = "UPDATE `alias_details` SET `name` = :newlistname, `owners` = :owners, `destinations` = :destinations, `security` = :security, `islist` = :islist WHERE `id` LIKE :editlistid"; // Aliasdaten in MailServer DB eintragen
     $sth = $dbh->prepare($eintrag);
     $sth->execute(array(':newlistname' => $_POST['newlistname'], ':owners' => $_POST['newlistowners'], ':destinations' => $_POST['newlistdestinations'], ':security' => $_POST['newlistsecurity'], ':islist' => $islist, ':editlistid' => $_POST['editlistid']));
-    $newlistsource = explode('@', $_POST['newlistsource']);
     $eintrag = "DELETE FROM `alias_owner` WHERE `alias_id` LIKE :aliasid";
     $sth = $dbh->prepare($eintrag);
     $sth->execute(array(':aliasid' => $_POST['editlistid']));
@@ -47,6 +46,14 @@ if ($_SESSION['log'] == 1) {
         $eintrag = "INSERT INTO `alias_owner` (`alias_id`, `owner_username`, `owner_domain`) VALUES (:aliasid, :owner_username, :owner_domain)"; // Aliasdaten in MailServer DB eintragen
         $sth = $dbh->prepare($eintrag);
         $sth->execute(array(':aliasid' => $_POST['editlistid'], ':owner_username' => $maillistownerex[0], ':owner_domain' => $maillistownerex[1]));
+    }
+    if ($_SESSION['admin']) {
+        $newlistsource = explode('@', $_POST['newlistsource']);
+    } else {
+        $abfrage = "SELECT `source_username`, `source_domain` FROM `aliases` WHERE `alias_id` LIKE :alias_id";
+        $result = $dbh->prepare($abfrage);
+        $result->execute(array(':alias_id' => $_POST['editlistid']));
+        $newlistsource = $result->fetch(); //bei fetch() werden im Array ['spaltenname'] und [#Nummer der Spalte] angelegt also ['source_usernam'] und [0] praktische Sache
     }
     $eintrag = "DELETE FROM `aliases` WHERE `alias_id` LIKE :aliasid";
     $sth = $dbh->prepare($eintrag);

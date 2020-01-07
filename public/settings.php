@@ -65,8 +65,9 @@ if ($_SESSION['log'] == 1) {
     <form name="deletemail" method=POST action="bin/deletemail.php">
     <input type="submit" value="LÖSCHEN"/>
     </form><p>';
-    echo $config['connectionsettingsadvicetext'];
-    echo $config['supportinfotext'];
+    echo nl2br($config['connectionsettingsadvicetext']);
+    echo '<br><br>';
+    echo nl2br($config['supportinfotext']);
     echo '</p></body>
     </html>';
     exit;
