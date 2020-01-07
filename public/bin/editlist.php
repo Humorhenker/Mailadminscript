@@ -58,6 +58,13 @@ if ($_SESSION['log'] == 1) {
     $eintrag = "DELETE FROM `aliases` WHERE `alias_id` LIKE :aliasid";
     $sth = $dbh->prepare($eintrag);
     $sth->execute(array(':aliasid' => $_POST['editlistid']));
+    if (!$_SESSION['admin']) {
+        $abfrage = "SELECT `source_username`, `source_domain` FROM `aliases` WHERE `alias_id` LIKE :alias_id";
+        $result = $dbh->prepare($abfrage);
+        $result->execute(array(':alias_id' => $_POST['editlistid']));
+        $newlistsource = $result->fetch(); //bei fetch() werden im Array ['spaltenname'] und [#Nummer der Spalte] angelegt also ['source_usernam'] und [0] praktische Sache
+    }
+    else $newlistsource = explode('@', $_POST['newlistsource']);
     foreach (explode(' ', $_POST['newlistdestinations']) as $maillistdestination) {
         $maillistdestinationex = explode('@', $maillistdestination);
         $eintrag = "INSERT INTO `aliases` (`alias_id`, `source_username`, `source_domain`, `destination_username`, `destination_domain`) VALUES (:aliasid, :source_username, :source_domain, :destination_username, :destination_domain)"; // Aliasdaten in MailServer DB eintragen
