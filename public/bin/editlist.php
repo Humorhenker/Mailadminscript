@@ -58,23 +58,45 @@ if ($_SESSION['log'] == 1) {
         $result->execute(array(':alias_id' => $_POST['editlistid']));
         $newlistsource = $result->fetch(); //bei fetch() werden im Array ['spaltenname'] und [#Nummer der Spalte] angelegt also ['source_username'] und [0] praktische Sache
     }
-    $eintrag = "DELETE FROM `aliases` WHERE `alias_id` LIKE :aliasid";
-    $sth = $dbh->prepare($eintrag);
-    $sth->execute(array(':aliasid' => $_POST['editlistid']));
-    if (!$_SESSION['admin']) {
-        $abfrage = "SELECT `source_username`, `source_domain` FROM `aliases` WHERE `alias_id` LIKE :alias_id";
-        $result = $dbh->prepare($abfrage);
-        $result->execute(array(':alias_id' => $_POST['editlistid']));
-        $newlistsource = $result->fetch(); //bei fetch() werden im Array ['spaltenname'] und [#Nummer der Spalte] angelegt also ['source_usernam'] und [0] praktische Sache
+
+    $abfrage = "SELECT `id`, `destination_username`, `destination_domain` FROM `aliases` WHERE `alias_id` LIKE :alias_id";
+    $result = $dbh->prepare($abfrage);
+    $result->execute(array(':alias_id' => $_POST['editlistid']));
+    $oldlistdestinations = array(array(),array(),array(),array());
+    while ($row = $result->fetch()) {
+        $oldlistdestinations[0][] = $row['id'];
+        $oldlistdestinations[1][] = $row['destination_username'];
+        $oldlistdestinations[2][] = $row['destination_domain'];
+        $oldlistdestinations[3][] = $row['destination_username'] . '@' . $row['destination_domain'];
     }
-    else $newlistsource = explode('@', $_POST['newlistsource']);
-    foreach (explode(' ', $_POST['newlistdestinations']) as $maillistdestination) {
-        if ($maillistdestination != Null) {
-            $maillistdestinationex = explode('@', $maillistdestination);
-            $eintrag = "INSERT INTO `aliases` (`alias_id`, `source_username`, `source_domain`, `destination_username`, `destination_domain`) VALUES (:aliasid, :source_username, :source_domain, :destination_username, :destination_domain)"; // Aliasdaten in MailServer DB eintragen
-            $sth = $dbh->prepare($eintrag);
-            $sth->execute(array(':aliasid' => $_POST['editlistid'], ':source_username' => $newlistsource[0], ':source_domain' => $newlistsource[1], ':destination_username' => $maillistdestinationex[0], ':destination_domain' => $maillistdestinationex[1]));
+    $newlistdestinations = array(array(),array(),array());
+    foreach (explode(' ', $_POST['newlistdestinations']) as $newlistdestination) {
+        $newlistdestinationex = explode('@', $newlistdestination);
+        array_push($newlistdestinations[0], $newlistdestinationex[0]);
+        array_push($newlistdestinations[1], $newlistdestinationex[1]);
+        array_push($newlistdestinations[2], $newlistdestinationex[0] . '@' . $newlistdestinationex[1]);
+    }
+    $dellistdestinations = array();
+    foreach ($oldlistdestinations[3] as $key => $oldlistdestination) {
+        if (!in_array($oldlistdestination, $newlistdestinations[2])) {
+            array_push($dellistdestinations, $oldlistdestinations[0][$key]);
         }
+    }
+    $addlistdestinations = array();
+    foreach ($newlistdestinations[2] as $key => $newlistdestination) {
+        if (!in_array($newlistdestination, $oldlistdestinations[3])) {
+            array_push($addlistdestinations, [$newlistdestinations[0][$key], $newlistdestinations[1][$key]]);
+        }
+    }
+    foreach ($dellistdestinations as $dellistdestination) {
+        $eintrag = "DELETE FROM `aliases` WHERE `id` LIKE :id";
+        $sth = $dbh->prepare($eintrag);
+        $sth->execute(array(':id' => $dellistdestination));
+    }
+    foreach ($addlistdestinations as $addlistdestination) {
+        $eintrag = "INSERT INTO `aliases` (`alias_id`, `source_username`, `source_domain`, `destination_username`, `destination_domain`) VALUES (:aliasid, :source_username, :source_domain, :destination_username, :destination_domain)"; // Aliasdaten in MailServer DB eintragen
+        $sth = $dbh->prepare($eintrag);
+        $sth->execute(array(':aliasid' => $_POST['editlistid'], ':source_username' => $newlistsource[0], ':source_domain' => $newlistsource[1], ':destination_username' => $addlistdestination[0], ':destination_domain' => $addlistdestination[1]));  
     }
     header("Location: maillistsettings.php");
     exit;
