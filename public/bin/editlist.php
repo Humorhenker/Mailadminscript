@@ -14,6 +14,9 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+use phpDocumentor\Reflection\Types\Null_;
+
 $config = parse_ini_file('../../private/config.ini');
 try {
     $dbh = new PDO('mysql:host=' . $config['dbservername'] . ';dbname=' . $config['dbname'], $config['dbusername'], $config['dbpassword'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
@@ -53,7 +56,7 @@ if ($_SESSION['log'] == 1) {
         $abfrage = "SELECT `source_username`, `source_domain` FROM `aliases` WHERE `alias_id` LIKE :alias_id";
         $result = $dbh->prepare($abfrage);
         $result->execute(array(':alias_id' => $_POST['editlistid']));
-        $newlistsource = $result->fetch(); //bei fetch() werden im Array ['spaltenname'] und [#Nummer der Spalte] angelegt also ['source_usernam'] und [0] praktische Sache
+        $newlistsource = $result->fetch(); //bei fetch() werden im Array ['spaltenname'] und [#Nummer der Spalte] angelegt also ['source_username'] und [0] praktische Sache
     }
     $eintrag = "DELETE FROM `aliases` WHERE `alias_id` LIKE :aliasid";
     $sth = $dbh->prepare($eintrag);
@@ -66,10 +69,12 @@ if ($_SESSION['log'] == 1) {
     }
     else $newlistsource = explode('@', $_POST['newlistsource']);
     foreach (explode(' ', $_POST['newlistdestinations']) as $maillistdestination) {
-        $maillistdestinationex = explode('@', $maillistdestination);
-        $eintrag = "INSERT INTO `aliases` (`alias_id`, `source_username`, `source_domain`, `destination_username`, `destination_domain`) VALUES (:aliasid, :source_username, :source_domain, :destination_username, :destination_domain)"; // Aliasdaten in MailServer DB eintragen
-        $sth = $dbh->prepare($eintrag);
-        $sth->execute(array(':aliasid' => $_POST['editlistid'], ':source_username' => $newlistsource[0], ':source_domain' => $newlistsource[1], ':destination_username' => $maillistdestinationex[0], ':destination_domain' => $maillistdestinationex[1]));
+        if ($maillistdestination != Null) {
+            $maillistdestinationex = explode('@', $maillistdestination);
+            $eintrag = "INSERT INTO `aliases` (`alias_id`, `source_username`, `source_domain`, `destination_username`, `destination_domain`) VALUES (:aliasid, :source_username, :source_domain, :destination_username, :destination_domain)"; // Aliasdaten in MailServer DB eintragen
+            $sth = $dbh->prepare($eintrag);
+            $sth->execute(array(':aliasid' => $_POST['editlistid'], ':source_username' => $newlistsource[0], ':source_domain' => $newlistsource[1], ':destination_username' => $maillistdestinationex[0], ':destination_domain' => $maillistdestinationex[1]));
+        }
     }
     header("Location: maillistsettings.php");
     exit;
